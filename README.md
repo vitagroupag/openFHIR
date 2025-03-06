@@ -1,8 +1,11 @@
-# openFHIR
+
+![openFHIR logo](https://open-fhir.com/images/openFIHR-logo-color-dark-horizontal-1.svg)
 
 openFHIR is an engine that implements [FHIR Connect specification](https://github.com/better-care/fhir-connect-mapping-spec) and facilitates bidirectional mappings between openEHR and FHIR.
+It is an open source edition of the commercial offering available at https://www.open-fhir.com
 
 ## [Documentataion](https://open-fhir.com/documentation/index.html)
+## [Sandbox](https://sandbox.open-fhir.com/)
 
 ## Build
 ### With docker and docker-compose
@@ -33,11 +36,3 @@ Run using
 java -jar target/*.jar
 ```
 
-## Test using the REST API
-1. Download and setup the Postman collection [here](https://github.com/medblocks/openFHIR/blob/main/src/test/resources/kds/KDS.postman_collection.json)
-
-2. Set variable `{{baseUrl}}` to `http://localhost:8080`
-
-3. Run [EHRBase](github.com/ehrbase/ehrbase) on `http://localhost:8081` to test if compositions are being saved.
-
-4. Test the requests in the collection!
