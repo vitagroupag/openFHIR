@@ -39,17 +39,39 @@ mappings:
 #      fhir: "$resource.requester" # mapping is twice, entry level will overwrite the composer from above if not changed in the extension mapping
 #      openehr: "$composition/provider"
 
-  - name: "identifier"
+  - name: "protocol0008Parent"
     with:
-      fhir: "$resource.identifier"
-      openehr: "$archetype/protocol[at0008]/items[at0010]"
-      type: "IDENTIFIER"
+      fhir: "$resource"
+      openehr: "$archetype/protocol[at0008]"
+      type: "NONE"
+    followedBy:
+      mappings:
+        - name: "identifier"
+          with:
+            fhir: "identifier"
+            openehr: "items[at0010]"
+            type: "IDENTIFIER"
 
-  - name: "status"
-    with:
-      fhir: "$resource.status"
-      openehr: "$archetype/protocol[at0008]/items[at0127]"
-      type: "CODING"
+        - name: "status"
+          with:
+            fhir: "status"
+            openehr: "items[at0127]"
+            type: "CODING"
+
+        - name: "organisation"
+          with:
+            fhir: "requester.as(Organization)"
+            openehr: "$reference"
+            type: "NONE"
+          reference:
+            resourceType: "Organization"
+            mappings:
+              - name: "organization"
+                with:
+                  fhir: "$fhirRoot"
+                  openehr: "items[openEHR-EHR-CLUSTER.organisation.v1]"
+                slotArchetype: "CLUSTER.organisation.v1"
+
 
   - name: "code"
     with:
@@ -74,20 +96,6 @@ mappings:
       fhir: "$resource.note.text"
       openehr: "$archetype/activities[at0001]/description[at0009]/items[at0150]"
       type: "STRING"
-
-  - name: "organisation"
-    with:
-      fhir: "$resource.requester.as(Organization)"
-      openehr: "$reference"
-      type: "NONE"
-    reference:
-      resourceType: "Organization"
-      mappings:
-        - name: "organization"
-          with:
-            fhir: "$fhirRoot"
-            openehr: "$archetype/protocol[at0008]/items[openEHR-EHR-CLUSTER.organisation.v1]"
-          slotArchetype: "CLUSTER.organisation.v1"
 
 
 

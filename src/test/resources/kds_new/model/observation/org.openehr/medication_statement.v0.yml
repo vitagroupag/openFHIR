@@ -54,89 +54,98 @@ mappings:
   #      fhir: "$resource.effective.as(Period)"
   #      openEHR: "$archetype/data[at0001]/events[at0002]" #todo: when dynamic mapping period -> interval event, datetime to pointInTime event
 
-  - name: "reasonCode"
+  - name: "eventsParent"
     with:
-      fhir: "$resource.reasonCode.text"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0023]"
-      type: "STRING"
-
-  - name: "note"
-    with:
-      fhir: "$resource.note.text"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0029]"
-      type: "STRING"
-
-  - name: "dosage"
-    with:
-      fhir: "$resource.dosage"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.dosage.v2]"
-    slotArchetype: "CLUSTER.dosage.v2"
+      fhir: "$resource"
+      openehr: "$archetype/data[at0001]/events[at0002]"
+      type: "NONE"
     followedBy:
       mappings:
-        - name: "route"
+        - name: "reasonCode"
           with:
-            fhir: "route"
-            openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0030]"
+            fhir: "reasonCode.text"
+            openehr: "data[at0003]/items[at0023]"
+            type: "STRING"
+
+        - name: "note"
+          with:
+            fhir: "note.text"
+            openehr: "data[at0003]/items[at0029]"
+            type: "STRING"
+
+        - name: "dosage"
+          with:
+            fhir: "dosage"
+            openehr: "data[at0003]/items[openEHR-EHR-CLUSTER.dosage.v2]"
+          slotArchetype: "CLUSTER.dosage.v2"
+          followedBy:
+            mappings:
+              - name: "route"
+                with:
+                  fhir: "route"
+                  openehr: "data[at0003]/items[at0030]"
+                  type: "CODEABLECONCEPT"
+
+        - name: "unstructuredDosage"
+          with:
+            fhir: "dosage.text"
+            openehr: "data[at0003]/items[at0033]"
+            type: "STRING"
+        # at0006
+
+        - name: "medication"
+          with:
+            fhir: "medication"
+            openehr: "$reference"
+          reference:
+            resourceType: "Medication"
+            mappings:
+              - name: "medicationReference"
+                with:
+                  fhir: "$fhirRoot"
+                  openehr: "data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
+                slotArchetype: "CLUSTER.medication.v2" # depending on the resourceType picks the correct one
+
+
+        - name: "medicationCodeR"
+          with:
+            fhir: "medication.as(CodeableConcept)"
+            openehr: "data[at0003]/items[at0006]"
             type: "CODEABLECONCEPT"
+          openehrCondition:
+            targetRoot: "data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
+            targetAttribute: "items[at0132]"
+            operator: "empty"
 
-  - name: "unstructuredDosage"
-    with:
-      fhir: "$resource.dosage.text"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0033]"
-      type: "STRING"
-# at0006
-
-  - name: "medication"
-    with:
-      fhir: "$resource.medication"
-      openehr: "$reference"
-    reference:
-      resourceType: "Medication"
-      mappings:
-        - name: "medicationReference"
+        - name: "medicationCode"
           with:
-            fhir: "$fhirRoot"
-            openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
-          slotArchetype: "CLUSTER.medication.v2" # depending on the resourceType picks the correct one
+            fhir: "medication.as(CodeableConcept)"
+            openehr: "data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]/items[at0132]"
+            type: "CODEABLECONCEPT"
+          openehrCondition:
+            targetRoot: "data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
+            targetAttributes:
+              - "items[at0071]" #"form"
+              - "items[at0115]" #"Strength"
+            operator: "empty"
+
+        - name: "medicationCodeR"
+          with:
+            fhir: "medication.as(CodeableConcept)"
+            openehr: "data[at0003]/items[at0006]"
+            type: "CODEABLECONCEPT"
+          openehrCondition:
+            targetRoot: "data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
+            targetAttribute: "items[at0132]"
+            operator: "empty"
+
+        - name: "reasonReference"
+          with:
+            fhir: "reasonReference.as(Reference).identifier.value"
+            openehr: "data[at0003]/items[at0023]"
+            type: "STRING"
 
 
-  - name: "medicationCodeR"
-    with:
-      fhir: "$resource.medication.as(CodeableConcept)"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0006]"
-      type: "CODEABLECONCEPT"
-    openehrCondition:
-      targetRoot: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
-      targetAttribute: "items[at0132]"
-      operator: "empty"
-
-  - name: "medicationCode"
-    with:
-      fhir: "$resource.medication.as(CodeableConcept)"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]/items[at0132]"
-      type: "CODEABLECONCEPT"
-    openehrCondition:
-      targetRoot: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
-      targetAttributes:
-        - "items[at0071]" #"form"
-        - "items[at0115]" #"Strength"
-      operator: "empty"
-
-  - name: "medicationCodeR"
-    with:
-      fhir: "$resource.medication.as(CodeableConcept)"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0006]"
-      type: "CODEABLECONCEPT"
-    openehrCondition:
-      targetRoot: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[openEHR-EHR-CLUSTER.medication.v2]"
-      targetAttribute: "items[at0132]"
-      operator: "empty"
-
-  - name: "reasonReference"
-    with:
-      fhir: "$resource.reasonReference.as(Reference).identifier.value"
-      openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0023]"
-      type: "STRING"
 
 #  - name: "partOf"
 #    with:

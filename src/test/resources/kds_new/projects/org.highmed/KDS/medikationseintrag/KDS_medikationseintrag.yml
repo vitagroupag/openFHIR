@@ -38,24 +38,31 @@ mappings:
 #              meaning: "the case this composition relates to"
 #              type: "case"
 
-  - name: "externalIdentifier"
-    extension: "add"
-    with:
-      fhir: "$resource.identifier"
-      openehr: "$archetype/protocol[at0004]/items[openEHR-EHR-CLUSTER.identifier_fhir.v0]"
-    slotArchetype: "CLUSTER.identifier_fhir.v0"
-
-  - name: "category"
-    extension: "add"
-    with:
-      fhir: "$resource.category"
-      openehr: "$archetype/protocol[at0004]/items[openEHR-EHR-CLUSTER.entry_category.v0]"
-    slotArchetype: "CLUSTER.entry_category.v0"
-
-  - name: "status"
+  - name: "protocol0004Parent"
     extension: "add"
     with:
       fhir: "$resource"
-      openehr: "$archetype/protocol[at0004]/items[openEHR-EHR-CLUSTER.medication_status_fhir.v0]"
-    slotArchetype: "CLUSTER.medication_status_fhir.v0"
+      openehr: "$archetype/protocol[at0004]"
+      type: "NONE"
+    followedBy:
+      mappings:
+        - name: "externalIdentifier"
+          with:
+            fhir: "identifier"
+            openehr: "items[openEHR-EHR-CLUSTER.identifier_fhir.v0]"
+          slotArchetype: "CLUSTER.identifier_fhir.v0"
+
+        - name: "category"
+          with:
+            fhir: "category"
+            openehr: "items[openEHR-EHR-CLUSTER.entry_category.v0]"
+          slotArchetype: "CLUSTER.entry_category.v0"
+
+        - name: "status"
+          with:
+            fhir: "$fhirRoot"
+            openehr: "items[openEHR-EHR-CLUSTER.medication_status_fhir.v0]"
+          slotArchetype: "CLUSTER.medication_status_fhir.v0"
+
+
 

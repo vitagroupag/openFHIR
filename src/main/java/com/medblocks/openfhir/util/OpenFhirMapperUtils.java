@@ -230,6 +230,10 @@ public class OpenFhirMapperUtils {
                 // hardcoding to FHIR
                 with.setOpenehr(OPENEHR_ARCHETYPE_FC);
             }
+            if (followedByMapping.getWith().getFhir() == null) {
+                // it means it's hardcoding to openEHR, we can therefore skip it when mapping to FHIR
+                continue;
+            }
             if (!followedByMapping.getWith().getFhir().startsWith(FhirConnectConst.FHIR_RESOURCE_FC)) {
                 followedByMapping.getWith().setFhir(fhirPath + "." + followedByMapping.getWith().getFhir());
             }
