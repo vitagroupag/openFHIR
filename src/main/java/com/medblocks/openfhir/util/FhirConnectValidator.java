@@ -121,12 +121,12 @@ public class FhirConnectValidator {
             aqlPath = "";
         }
         else{
-            aqlPath = mapping.getWith().getOpenehr().replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC,"").replace(FhirConnectConst.OPENEHR_COMPOSITION_FC,"").replace(FhirConnectConst.REFERENCE,"");
+            aqlPath = mapping.getWith().getOpenehr().replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC,"").replace(FhirConnectConst.OPENEHR_COMPOSITION_FC,"")
+                    .replace(FhirConnectConst.REFERENCE,"").replace(FhirConnectConst.OPENEHR_ROOT_FC, "");
         }
         if(aqlPath.startsWith("/")){
             aqlPath = aqlPath.replaceFirst("/","");
         }
-
         return aqlPath;
     }
 
