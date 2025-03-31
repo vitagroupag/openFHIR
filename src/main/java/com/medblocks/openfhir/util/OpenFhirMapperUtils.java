@@ -288,8 +288,10 @@ public class OpenFhirMapperUtils {
             if (followedByMapping.getFhirCondition() != null
                     && !followedByMapping.getFhirCondition().getTargetRoot()
                     .startsWith(FhirConnectConst.FHIR_RESOURCE_FC)) {
+                final String condTargetRoot = followedByMapping.getFhirCondition().getTargetRoot()
+                        .replace(FhirConnectConst.FHIR_ROOT_FC, "");
                 followedByMapping.getFhirCondition()
-                        .setTargetRoot(fhirPath + "." + followedByMapping.getFhirCondition().getTargetRoot());
+                        .setTargetRoot(fhirPath + (StringUtils.isEmpty(condTargetRoot) ? "" : ("." + condTargetRoot)));
             }
 
             // now conditions

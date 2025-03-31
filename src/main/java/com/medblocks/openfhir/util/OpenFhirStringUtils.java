@@ -537,7 +537,8 @@ public class OpenFhirStringUtils {
         String withParentsWhereInPlace;
         final String remainingItems;
         final String actualConditionTargetRoot = condition.getTargetRoot()
-                .replace(FhirConnectConst.FHIR_RESOURCE_FC, resource);
+                .replace(FhirConnectConst.FHIR_RESOURCE_FC, resource)
+                .replace(FHIR_ROOT_FC, "");
         if (originalFhirPath.startsWith(actualConditionTargetRoot)) {
             // then we use target root as the base path
             withParentsWhereInPlace = setParentsWherePathToTheCorrectPlace(actualConditionTargetRoot, parentPath);

@@ -3,7 +3,7 @@
   "title": "FHIRConnect Model Schema",
   "type": "object",
   "properties": {
-    "engine": {
+    "grammar": {
       "type": "string",
       "pattern": "^FHIRConnect/v[0-9]+\\.[0-9]+\\.[0-9]+$"
     },
@@ -78,6 +78,91 @@
     },
     "mappings": {
       "$ref": "#/$defs/mappings"
+    },
+    "preprocessor": {
+      "type": "object",
+      "properties": {
+        "fhirCondition": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "targetRoot": {
+              "type": "string"
+            },
+            "targetAttribute": {
+              "type": "string"
+            },
+            "targetAttributes": {
+              "type": "array"
+            },
+            "operator": {
+              "type": "string"
+            },
+            "criteria": {
+              "type": "string"
+            },
+            "criterias": {
+              "type": "array"
+            },
+            "identifying": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "targetRoot",
+            "operator"
+          ]
+        },
+        "openehrCondition": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "targetRoot": {
+              "type": "string"
+            },
+            "targetAttributes": {
+              "type": "array"
+            },
+            "targetAttribute": {
+              "type": "string"
+            },
+            "operator": {
+              "type": "string"
+            },
+            "criteria": {
+              "type": "string"
+            },
+            "criterias": {
+              "type": "array"
+            },
+            "identifying": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "targetRoot",
+            "operator"
+          ],
+          "oneOf": [
+            {
+              "required": [
+                "targetAttribute"
+              ]
+            },
+            {
+              "required": [
+                "targetAttributes"
+              ]
+            }
+          ]
+        }
+      }
     }
   },
   "$defs": {
@@ -132,6 +217,9 @@
               "type": "string"
             },
             "type": {
+              "type": "string"
+            },
+            "value": {
               "type": "string"
             }
           }

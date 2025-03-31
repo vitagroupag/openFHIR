@@ -1,7 +1,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name: "openEHR-EHR-OBSERVATION.head_circumference.v1"
+  name: "OBSERVATION.head_circumference.v1"
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -10,19 +10,21 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     archetype: "openEHR-EHR-OBSERVATION.head_circumference.v1"
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Observation
-    condition:
-      - targetRoot: "$resource"
-        targetAttribute: "category.coding.code"
-        operator: "one of"
-        criteria: "[head_circumference]"
-      - targetRoot: "$resource"
-        targetAttribute: "status"
-        operator: "one of"
-        criteria: "[final]"
 
+preprocessor:
+  fhirConditions:
+    - targetRoot: "$resource"
+      targetAttribute: "category.coding.code"
+      operator: "one of"
+      criteria: "head_circumference"
+
+    - targetRoot: "$resource"
+      targetAttribute: "status"
+      operator: "one of"
+      criteria: "final"
 
 mappings:
-  - name: "head-circumference"
+  - name: "headCircumference"
     with:
       fhir: "$resource.value"
       openehr: "$archetype/data[at0001]/events[at0010]/data[at0003]/items[at0004]"

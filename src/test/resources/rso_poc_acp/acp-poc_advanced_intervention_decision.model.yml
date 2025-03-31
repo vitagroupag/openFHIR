@@ -1,7 +1,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name: "openEHR-EHR-EVALUATION.advance_intervention_decisions.v1"
+  name: "EVALUATION.advance_intervention_decisions.v1"
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -10,11 +10,13 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     archetype: "openEHR-EHR-EVALUATION.advance_intervention_decisions.v1"
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Consent
-    condition:
-      - targetRoot: "$resource"
-        targetAttribute: "meta.profile"
-        operator: "one of"
-        criteria: "[http://nictiz.nl/fhir/StructureDefinition/zib-TreatmentDirective]"
+
+preprocessor:
+  fhirConditions:
+    - targetRoot: "$resource"
+      targetAttribute: "meta.profile"
+      operator: "one of"
+      criteria: "http://nictiz.nl/fhir/StructureDefinition/zib-TreatmentDirective"
 
 mappings:
 

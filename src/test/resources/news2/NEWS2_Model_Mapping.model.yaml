@@ -1,7 +1,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name: "openEHR-EHR-OBSERVATION.news2.v1"
+  name: "OBSERVATION.news2.v1"
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -10,22 +10,24 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     archetype: "openEHR-EHR-OBSERVATION.news2.v1"
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Observation
-    condition:
-      - targetRoot: "$resource"
-        targetAttribute: "code.coding.code"
-        operator: "one of"
-        criteria: "[$snomed.1104051000000101]"
-      - targetRoot: "$resource"
-        targetAttribute: "status"
-        operator: "one of"
-        criteria: "[final]"
-      - targetRoot: "$resource"
-        targetAttribute: "category.coding.code"
-        operator: "one of"
-        criteria: "[survey]"
+
+preprocessor:
+  fhirConditions:
+    - targetRoot: "$resource"
+      targetAttribute: "code.coding.code"
+      operator: "one of"
+      criteria: "[$snomed.1104051000000101]"
+    - targetRoot: "$resource"
+      targetAttribute: "status"
+      operator: "one of"
+      criteria: "[final]"
+    - targetRoot: "$resource"
+      targetAttribute: "category.coding.code"
+      operator: "one of"
+      criteria: "[survey]"
 
 mappings:
-  - name: "National Early Warning Score 2 (NEWS2)"
+  - name: "nationalEarlyWarningScoreNEWS2"
     with:
       fhir: "$resource.value"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0028]"
@@ -37,7 +39,7 @@ mappings:
       openehr: "$archetype/data[at0001]/events[at0002]/time"
       type: "DATETIME"
 
-  - name: "Respiration Rate Score"
+  - name: "rrs"
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0006]"
@@ -48,7 +50,7 @@ mappings:
       operator: "one of"
       criteria: "[$snomed.1104301000000104]"
 
-  - name: "SPO Scale 1"
+  - name: "spos1"
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0029]"
@@ -70,7 +72,7 @@ mappings:
   #      operator: "one of"
   #      criteria: "[$snomed.1104331000000105]"
 
-  - name: "air or oxygen score"
+  - name: "airOrOxygenScore"
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0034]"
