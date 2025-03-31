@@ -1,7 +1,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name: "openEHR-EHR-OBSERVATION.body_temperature.v2"
+  name: "OBSERVATION.body_temperature.v2"
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -10,7 +10,9 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     archetype: "openEHR-EHR-OBSERVATION.body_temperature.v2"
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Observation
-    condition:
+
+preprocessor:
+  fhirConditions:
     - targetRoot: "$resource"
       targetAttribute: "code.coding.code"
       operator: "one of"
@@ -18,11 +20,11 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     - targetRoot: "$resource"
       targetAttribute: "status"
       operator: "one of"
-      criteria: "[final]"
+      criteria: "final"
     - targetRoot: "$resource"
       targetAttribute: "category.coding.code"
       operator: "one of"
-      criteria: "[vital-signs]"
+      criteria: "vital-signs"
 
 mappings:
   - name: "value"

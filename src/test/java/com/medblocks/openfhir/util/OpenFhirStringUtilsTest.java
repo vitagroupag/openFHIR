@@ -426,6 +426,18 @@ public class OpenFhirStringUtilsTest {
                                                               "Patient",
                                                               "Patient.address.where(type.toString().contains('both')).line"));
 
+        condition = new Condition();
+        condition.setTargetRoot("$fhirRoot");
+        condition.setTargetAttribute("code.coding.code");
+        condition.setCriteria("8462-4");
+        condition.setOperator("one of");
+        Assert.assertEquals(
+                ".where(code.coding.code.toString().contains('8462-4')).value",
+                openFhirStringUtils.getFhirPathWithConditions("value",
+                                                              condition,
+                                                              "Observation",
+                                                              null));
+
     }
 
     @Test

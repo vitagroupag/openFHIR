@@ -1,7 +1,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name: "openEHR-EHR-OBSERVATION.pulse_oximetry.v1"
+  name: "OBSERVATION.pulse_oximetry.v1"
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -10,19 +10,21 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     archetype: "openEHR-EHR-OBSERVATION.pulse_oximetry.v1"
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Observation
-    condition:
-      - targetRoot: "$resource"
-        targetAttribute: "code.coding.code"
-        operator: "one of"
-        criteria: "[$snomed.103228002,$loinc.2708-6]" #need to add support for adding two codes
-      - targetRoot: "$resource"
-        targetAttribute: "status"
-        operator: "one of"
-        criteria: "[final]"
-      - targetRoot: "$resource"
-        targetAttribute: "category.coding.code"
-        operator: "one of"
-        criteria: "[vital-signs]"
+
+preprocessor:
+  fhirConditions:
+    - targetRoot: "$resource"
+      targetAttribute: "code.coding.code"
+      operator: "one of"
+      criteria: "[$snomed.103228002,$loinc.2708-6]" #need to add support for adding two codes
+    - targetRoot: "$resource"
+      targetAttribute: "status"
+      operator: "one of"
+      criteria: "final"
+    - targetRoot: "$resource"
+      targetAttribute: "category.coding.code"
+      operator: "one of"
+      criteria: "vital-signs"
 
 mappings:
   - name: "value"

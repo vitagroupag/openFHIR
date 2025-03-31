@@ -1,7 +1,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name: "openEHR-EHR-OBSERVATION.height.v2"
+  name: "OBSERVATION.height.v2"
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -10,19 +10,15 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     archetype: "openEHR-EHR-OBSERVATION.height.v2"
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Observation
-    condition:
-      - targetRoot: "$resource"
-        targetAttribute: "category.coding.code"
-        operator: "one of"
-        criteria: "[height]"
 
+preprocessor:
+  fhirCondition:
+    targetRoot: "$resource"
+    targetAttribute: "category.coding.code"
+    operator: "one of"
+    criteria: "height"
 
 mappings:
-  - name: "patient"
-    with:
-      fhir: "$resource.subject.reference"
-      openehr: "$openEhrContext.$ehr"
-      type: "STRING"
   - name: "height"
     with:
       fhir: "$resource.value"

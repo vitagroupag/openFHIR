@@ -8,6 +8,8 @@ import com.medblocks.openfhir.fc.schema.Metadata;
 import com.medblocks.openfhir.fc.schema.SchemaType;
 import com.medblocks.openfhir.fc.schema.Spec;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 
 /**
@@ -53,6 +55,11 @@ public class FhirConnectModel {
      */
     @JsonProperty("spec")
     private Spec spec;
+
+    @JsonProperty("preprocessor")
+    @Getter
+    @Setter
+    private Preprocessor preprocessor;
 
     /**
      * Mappings

@@ -1,7 +1,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name: "openEHR-EHR-OBSERVATION.body_weight.v2"
+  name: "OBSERVATION.body_weight.v2"
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -10,20 +10,15 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
     archetype: "openEHR-EHR-OBSERVATION.body_weight.v2"
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Observation
-    condition:
-      - targetRoot: "$resource"
-        targetAttribute: "category.coding.code"
-        operator: "one of"
-        criteria: "[weight]"
 
-
+preprocessor:
+  fhirCondition:
+    targetRoot: "$resource"
+    targetAttribute: "category.coding.code"
+    operator: "one of"
+    criteria: "weight"
 
 mappings:
-  - name: "patient"
-    with:
-      fhir: "$resource.subject.reference"
-      openehr: "$openEhrContext.$ehr"
-      type: "STRING"
   - name: "weight"
     with:
       fhir: "$resource.value"
@@ -45,3 +40,14 @@ mappings:
       fhir: "$resource.note.text"
       openehr: "$archetype/data[at0002]/events[at0003]/data[at0001]/items[at0024]"
       type: "STRING"
+
+  - name: "stateOfDress"
+    with:
+      fhir: "$resource.component.value"
+      openehr: "$archetype/data[at0002]/events[at0003]/state[at0008]/items[at0009]"
+      type: "CODEABLECONCEPT"
+    fhirCondition:
+      targetRoot: "$resource.component"
+      targetAttribute: "code.coding.code"
+      operator: "one of"
+      criteria: "[$loinc.9999-9]"

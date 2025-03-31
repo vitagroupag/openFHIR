@@ -88,11 +88,13 @@ public class OpenFhirEngine {
 
         final Resource resource = parseIncomingFhirResource(incomingFhirResource);
         for (final FhirConnectContextEntity context : allUserContexts) {
-            final Condition condition = getContextCondition(context.getFhirConnectContext().getContext().getProfile().getUrl());
-            final String resourceType = "Bundle"; // todo: always bundle?
+            final Condition condition = getContextCondition(
+                    context.getFhirConnectContext().getContext().getProfile().getUrl(),
+                    resource.getResourceType().name());
+            final String resourceType = resource.getResourceType().name();
             final String fhirPathWithCondition = openFhirStringUtils.amendFhirPath(FhirConnectConst.FHIR_RESOURCE_FC,
-                    Collections.singletonList(condition),
-                    resourceType);
+                                                                                   Arrays.asList(condition),
+                                                                                   resourceType);
             if (StringUtils.isEmpty(fhirPathWithCondition) || fhirPathWithCondition.equals(resourceType)) {
                 log.warn("No fhirpath defined for resource type, context relevant for all?");
                 fallbackContext = context; // assign it to the variable in case there really is no other suitable one.. in which case, this will be returned (or the last occurrence of such a context mapper 'for all'
@@ -114,13 +116,18 @@ public class OpenFhirEngine {
         return fallbackContext;
     }
 
-    private Condition getContextCondition(final String profileUrl) {
-        if(profileUrl == null) {
+    private Condition getContextCondition(final String profileUrl, final String resourceType) {
+        if (profileUrl == null || StringUtils.isEmpty(profileUrl)) {
             return null;
         }
         final Condition condition = new Condition();
-        condition.setTargetRoot("Bundle"); // todo: always bundle?
-        condition.setTargetAttribute("entry.resource.meta.profile"); // todo: modify accordingly to the agreement, which should this point to now that we've removed general approach?
+        if (resourceType.equals("Bundle")) {
+            condition.setTargetRoot("Bundle");
+            condition.setTargetAttribute("entry.resource.meta.profile");
+        } else {
+            condition.setTargetRoot(resourceType);
+            condition.setTargetAttribute("meta.profile");
+        }
         condition.setOperator("one of");
         condition.setCriteria(profileUrl);
         return condition;

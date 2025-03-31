@@ -50,12 +50,21 @@ public class OpenFhirFhirConnectModelMapper {
         openFhirFhirConnectModelMapper.setOpenEhrConfig(
                 new OpenEhrConfig().withArchetype(fhirConnectModel.getSpec().getOpenEhrConfig().getArchetype()));
         openFhirFhirConnectModelMapper.setFhirConfig(new OpenFhirFhirConfig()
-                                                             .withCondition(fhirConnectModel.getSpec().getFhirConfig()
-                                                                                    .getCondition())
+                                                             .withCondition(getPreprocessingFhirConditions(fhirConnectModel))
                                                              .withMultiple(fhirConnectModel.getSpec().getFhirConfig().getMultiple())
                                                              .withResource(parseResourceType(fhirConnectModel)));
         openFhirFhirConnectModelMapper.setName(fhirConnectModel.getMetadata().getName());
         return openFhirFhirConnectModelMapper;
+    }
+
+    private List<Condition> getPreprocessingFhirConditions(final FhirConnectModel fhirConnectModel) {
+        if(fhirConnectModel.getPreprocessor() == null) {
+            return null;
+        }
+        if(fhirConnectModel.getPreprocessor().getFhirCondition() != null) {
+            return List.of(fhirConnectModel.getPreprocessor().getFhirCondition());
+        }
+        return fhirConnectModel.getPreprocessor().getFhirConditions();
     }
 
     private void doManualMappings(final List<Mapping> mappings) {

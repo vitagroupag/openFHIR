@@ -17,4 +17,14 @@ class FhirConnectValidatorTest {
         final List<String> strings = new FhirConnectValidator().validateAgainstModelSchema(fhirConnectModel);
         Assert.assertTrue(strings.isEmpty());
     }
+
+    @Test
+    void validateAgainstModelCondition() {
+        final Yaml yaml = OpenFhirTestUtility.getYaml();
+        final FhirConnectModel fhirConnectModel = yaml.loadAs(
+                getClass().getResourceAsStream("/growth_chart/body-height.model.yml"),
+                FhirConnectModel.class);
+        final List<String> strings = new FhirConnectValidator().validateAgainstModelSchema(fhirConnectModel);
+        Assert.assertNull(strings);
+    }
 }
