@@ -1,5 +1,6 @@
 package com.medblocks.openfhir.db.repository.postgres;
 
+import com.medblocks.openfhir.db.entity.FhirConnectContextEntity;
 import com.medblocks.openfhir.db.entity.FhirConnectModelEntity;
 import com.medblocks.openfhir.db.repository.FhirConnectModelRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,7 @@ public interface FhirConnectModelPgRepository extends FhirConnectModelRepository
 
     @Query("SELECT b FROM FhirConnectModelEntity b WHERE b.name IN (:name)")
     List<FhirConnectModelEntity> findByName(final List<String> name);
+
+    @Query("SELECT b FROM FhirConnectModelEntity b WHERE b.id = :id")
+    FhirConnectModelEntity byId(final String id);
 }

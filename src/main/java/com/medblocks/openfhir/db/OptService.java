@@ -64,8 +64,14 @@ public class OptService {
     }
 
 
-    public String getContent(final String templateId, final String reqId) {
-        return optRepository.findByTemplateId(templateId).getContent();
+    public String getContentByTemplateId(final String templateId, final String reqId) {
+        final OptEntity byTemplateId = optRepository.findByTemplateId(templateId);
+        return byTemplateId == null ? null : byTemplateId.getContent();
+    }
+
+    public String getContent(final String id, final String reqId) {
+        final OptEntity optEntity = optRepository.byId(id);
+        return optEntity == null ? null : optEntity.getContent();
     }
 
     /**

@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
+import org.springframework.data.repository.query.Param;
 
 
 public interface OptMongoRepository extends OptRepository, MongoRepository<OptEntity, String> {
@@ -14,4 +15,6 @@ public interface OptMongoRepository extends OptRepository, MongoRepository<OptEn
     List<OptEntity> searchWithEmptyContent();
 
     OptEntity findByTemplateId(final String templateId);
+
+    OptEntity byId(final String id);
 }

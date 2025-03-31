@@ -20,12 +20,19 @@ import lombok.Setter;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
+        "id",
         "grammar",
         "type",
         "metadata",
         "spec"
 })
 public class FhirConnectModel {
+
+
+    @Getter
+    @Setter
+    @JsonProperty("id")
+    private String id;
 
     /**
      *
