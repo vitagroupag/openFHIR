@@ -53,5 +53,13 @@ public class FhirConnectContextEntity {
         }
         // Deserialize JSON after loading from DB
         this.fhirConnectContext = new Gson().fromJson(fhirConnectContextJson, FhirConnectContext.class);
+        this.fhirConnectContext.setId(id);
+    }
+
+    public FhirConnectContext getFhirConnectContext() {
+        if(fhirConnectContext != null) {
+            fhirConnectContext.setId(id);
+        }
+        return fhirConnectContext;
     }
 }

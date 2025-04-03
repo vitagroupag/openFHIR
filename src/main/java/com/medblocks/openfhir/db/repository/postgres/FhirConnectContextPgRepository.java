@@ -9,4 +9,8 @@ public interface FhirConnectContextPgRepository extends FhirConnectContextReposi
 
     @Query("SELECT b FROM FhirConnectContextEntity b WHERE b.templateId = :templateId")
     FhirConnectContextEntity findByTemplateId(final String templateId);
+
+    @Query("SELECT b FROM FhirConnectContextEntity b WHERE b.id = :id")
+    FhirConnectContextEntity byId(final String id);
+
 }

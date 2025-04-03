@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.medblocks.openfhir.fc.schema.Metadata;
 import com.medblocks.openfhir.fc.schema.SchemaType;
 import com.medblocks.openfhir.fc.schema.Spec;
+import lombok.Getter;
+import lombok.Setter;
 
 
 /**
@@ -17,6 +19,7 @@ import com.medblocks.openfhir.fc.schema.Spec;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
+        "id",
         "grammar",
         "type",
         "metadata",
@@ -24,6 +27,11 @@ import com.medblocks.openfhir.fc.schema.Spec;
         "context"
 })
 public class FhirConnectContext {
+
+    @Getter
+    @Setter
+    @JsonProperty("id")
+    private String id;
 
     /**
      *

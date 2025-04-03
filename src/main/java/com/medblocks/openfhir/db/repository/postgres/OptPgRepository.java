@@ -11,4 +11,7 @@ public interface OptPgRepository extends OptRepository, JpaRepository<OptEntity,
 
     @Query("SELECT o FROM OptEntity o WHERE o.templateId = :templateId")
     OptEntity findByTemplateId(@Param("templateId") final String templateId);
+
+    @Query("SELECT o FROM OptEntity o WHERE o.id = :id")
+    OptEntity byId(@Param("id") final String id);
 }

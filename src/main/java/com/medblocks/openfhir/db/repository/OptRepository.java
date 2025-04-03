@@ -11,6 +11,7 @@ public interface OptRepository {
     List<OptEntity> findAll();
 
     OptEntity save(OptEntity entity);
+    OptEntity byId(String id);
 
     void deleteAll();
 }

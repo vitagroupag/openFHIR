@@ -55,5 +55,13 @@ public class FhirConnectModelEntity {
         }
         // Deserialize JSON after loading from DB
         this.fhirConnectModel = new Gson().fromJson(fhirConnectModelJson, FhirConnectModel.class);
+        this.fhirConnectModel.setId(id);
+    }
+
+    public FhirConnectModel getFhirConnectModel() {
+        if(fhirConnectModel != null) {
+            fhirConnectModel.setId(id);
+        }
+        return fhirConnectModel;
     }
 }
