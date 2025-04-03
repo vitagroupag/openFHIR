@@ -78,6 +78,15 @@ public class OpenEhrToFhirHelper {
       */
       private String mappingCode;
 
+    /**
+     * Return the data list, ensuring it's never null
+     */
+    public List<DataWithIndex> getData() {
+        if (data == null) {
+            data = new ArrayList<>();
+        }
+        return data;
+    }
 
     @Data
     @AllArgsConstructor
