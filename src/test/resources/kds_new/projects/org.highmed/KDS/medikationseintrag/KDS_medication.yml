@@ -2,15 +2,15 @@ grammar: FHIRConnect/v0.9.0
 type: extension
 metadata:
   name:  KDS_medication.v3
-  version: 0.0.1-alpha 
-spec: 
+  version: 0.0.1-alpha
+spec:
   system: FHIR
   version: R4
   extends: CLUSTER.medication.v2
 
 mappings:
 
-#because in kds template, at0132 is a string
+  #because in kds template, at0132 is a string
   - name: "name"
     extension: "overwrite"
     with:
@@ -23,7 +23,7 @@ mappings:
       operator: "type"
       criteria: "DV_TEXT"
 
-# because medication.v2 has sometime at0132 as text and other times as coded text...i.e. Arzneimittel-Name vs Bestandteil
+  # because medication.v2 has sometime at0132 as text and other times as coded text...i.e. Arzneimittel-Name vs Bestandteil
   - name: "nameStructured"
     extension: "add"
     with:
@@ -44,9 +44,9 @@ mappings:
       mappings:
         - name: "wirkstofftypExtended"
           with:
-            fhir: "extension.value"
-            openehr: "$archetype/items[at0142]"
-            type: "CODING"
+            fhir: "extension"
+            openehr: "$archetype"
+            type: "NONE"
           fhirCondition:
             targetRoot: "extension"
             targetAttribute: "url"
@@ -54,14 +54,21 @@ mappings:
             criteria: "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/wirkstofftyp"
           followedBy:
             mappings:
-              - name: "extension"
+              - name: "value"
                 with:
-                  fhir: "extension"
+                  fhir: "value"
+                  openehr: "items[at0142]"
+                  type: "CODING"
+              - name: "url"
+                with:
+                  fhir: "$fhirRoot"
                 manual:
                   - name: "extensionUrl"
                     fhir:
                       - path: "url"
                         value: "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/wirkstofftyp"
+
+
 
 #  - name: "wirkstoffrelation"
 #    extension: "append"
