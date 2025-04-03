@@ -12,6 +12,7 @@ import com.medblocks.openfhir.toopenehr.FhirToOpenEhrHelper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -638,18 +639,59 @@ public class OpenFhirStringUtils {
                 final String string = parents[parentIndex];
                 if (string.startsWith(WHERE)) {
                     // a where follows
-                    final String firstWhereCondition = extractWhereCondition(
-                            parent.substring(parentSubstringCount - 1));
+                    final String substringForRelevantWhere = parent.substring(Arrays.stream(parents)
+                                                                                      .limit(parentIndex)
+                                                                                      .mapToInt(String::length)
+                                                                                      .sum());
+                    final String firstWhereCondition = extractWhereCondition(substringForRelevantWhere);
                     childPathJoiner.add(firstWhereCondition);
                     childPathJoiner.add(childPath);
-                    parentIndex += (int) (firstWhereCondition.chars().filter(ch -> ch == '.').count() + 1);
+                    parentIndex += (int) (firstWhereCondition.chars().filter(ch -> ch == '.').count() + 2);
                 } else {
                     childPathJoiner.add(childPath);
                 }
             }
         }
 
-        return childPathJoiner.toString();
+        // if all that's left is a where at the end of parent's path, this where needs to be added too
+        final String constructedChildPath = childPathJoiner.toString();
+        if(parent.startsWith(constructedChildPath)) {
+            final String onlyWhere = parent.replace(constructedChildPath, "");
+            final String extractedWhere = extractWhereCondition(onlyWhere);
+            if(extractedWhere != null && (extractedWhere.equals(onlyWhere) || ("."+ extractedWhere).equals(onlyWhere))) {
+                return constructedChildPath + onlyWhere;
+            }
+        }
+
+        return constructedChildPath;
+    }
+
+
+
+    /**
+     * i.e.
+     * growth_chart/body_weight/any_event:2/weight|unit
+     * and
+     * growth_chart/body_weight/any_event:2/weight|magnitude
+     * will be joined together, as they are a single object
+     */
+    public Map<String, List<String>> joinValuesThatAreOne(final List<String> matchingEntries) {
+        final Map<String, List<String>> matchings = new HashMap<>();
+        for (String matchingEntry : matchingEntries) {
+            final String[] split = matchingEntry.split("\\|");
+            final String root = split[0];
+            if (split.length == 1) {
+                final List<String> list = new ArrayList<>();
+                list.add(root);
+                matchings.put(root, list);
+            } else {
+                if (!matchings.containsKey(root)) {
+                    matchings.put(root, new ArrayList<>());
+                }
+                matchings.get(root).add(matchingEntry);
+            }
+        }
+        return matchings;
     }
 
 
