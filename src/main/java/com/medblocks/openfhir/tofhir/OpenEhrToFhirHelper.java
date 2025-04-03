@@ -73,6 +73,11 @@ public class OpenEhrToFhirHelper {
      */
     private String parentFollowedByOpenEhr;
 
+     /**
+      * Custom mapping code for plugin-based conversion
+      */
+      private String mappingCode;
+
 
     @Data
     @AllArgsConstructor
