@@ -176,6 +176,87 @@ public class TestPlugin extends Plugin {
             repeat.setPeriod(value);
             repeat.setPeriodUnit(convertToUnitsOfTime(unit));
         }
+
+        /**
+         * Create a quantity with the specified values
+         */
+        private Quantity createQuantity(double value, String unit) {
+            Quantity quantity = new Quantity();
+            quantity.setValue(value);
+            quantity.setUnit(unit);
+            quantity.setSystem("http://unitsofmeasure.org");
+            quantity.setCode(unit);
+            return quantity;
+        }
+        
+        /**
+         * Create a Ratio with numerator and denominator
+         */
+        private Ratio createRatio(double numeratorValue, String numeratorUnit, 
+                                double denominatorValue, String denominatorUnit) {
+            Ratio ratio = new Ratio();
+            ratio.setNumerator(createQuantity(numeratorValue, numeratorUnit));
+            ratio.setDenominator(createQuantity(denominatorValue, denominatorUnit));
+            return ratio;
+        }
+        
+        /**
+         * Set rate on a dosage component
+         */
+        private void setRateOnDosage(org.hl7.fhir.r4.model.Dosage dosage, Ratio ratio, String fhirPath) {
+            org.hl7.fhir.r4.model.Dosage.DosageDoseAndRateComponent doseAndRate = 
+                dosage.addDoseAndRate();
+            
+            // Set as rate using the ratio
+            doseAndRate.setRate(ratio);
+            log.info("Set rate as Ratio on dosage");
+            
+            // Also set as dose if the path suggests it
+            if (fhirPath != null && fhirPath.contains("dose")) {
+                doseAndRate.setDose(ratio.getNumerator());
+                log.info("Also set dose quantity");
+            }
+        }
+        
+        /**
+         * Apply dosage settings to target resource based on fhirPath and values
+         */
+        private Resource applyDosageSettings(Resource targetResource, Ratio ratio, String fhirPath) {
+            if (targetResource == null) {
+                return null;
+            }
+            
+            try {
+                log.info("Target resource type: {}", targetResource.getClass().getSimpleName());
+                org.hl7.fhir.r4.model.Dosage dosage = getDosage(targetResource);
+                
+                if (dosage != null) {
+                    // Handle different paths
+                    if (fhirPath.contains("doseAndRate.rate")) {
+                        setRateOnDosage(dosage, ratio, fhirPath);
+                        log.info("Successfully set dose rate");
+                    } else {
+                        // Get denominator value and unit for timing
+                        int value = ratio.getDenominator().getValue().intValue();
+                        String unit = ratio.getDenominator().getCode();
+                        
+                        // Set frequency/timing
+                        setTimingOnDosage(dosage, value, unit);
+                        log.info("Set timing frequency");
+                    }
+                    
+                    // Return the entire resource to ensure it gets included in the bundle
+                    return targetResource;
+                }
+                
+                // For any other resource type, just return the ratio
+                log.info("Target is not a medication resource, returning ratio directly");
+                return ratio;
+            } catch (Exception e) {
+                log.error("Error applying dosage settings to resource: {}", e.getMessage(), e);
+                return ratio;
+            }
+        }
         
         /**
          * Converts OpenEHR DV_QUANTITY to FHIR Ratio
@@ -214,60 +295,12 @@ public class TestPlugin extends Plugin {
                 log.info("Extracted magnitude: {}, unit: {}", magnitude, unit);
                 
                 // Create a new Ratio with the numerator populated
-                Ratio ratio = new Ratio();
-                
-                // Set the numerator
-                Quantity numerator = new Quantity();
-                numerator.setValue(magnitude);
-                numerator.setUnit(unit);
-                numerator.setSystem("http://unitsofmeasure.org");
-                numerator.setCode(unit);
-                ratio.setNumerator(numerator);
-                
-                // For now, create an empty denominator (will be filled by duration mapping if needed)
-                Quantity denominator = new Quantity();
-                denominator.setValue(1);
-                denominator.setUnit("h");
-                denominator.setSystem("http://unitsofmeasure.org");
-                denominator.setCode("h");
-                ratio.setDenominator(denominator);
+                Ratio ratio = createRatio(magnitude, unit, 1, "h");
                 
                 log.info("Created Ratio with numerator value: {}, unit: {}", magnitude, unit);
                 
-                // If we have a target resource, try to set this value directly
-                if (targetResource != null) {
-                    try {
-                        log.info("Target resource type: {}", targetResource.getClass().getSimpleName());
-                        org.hl7.fhir.r4.model.Dosage dosage = getDosage(targetResource);
-                        
-                        if (dosage != null) {
-                            // Add dose and rate
-                            org.hl7.fhir.r4.model.Dosage.DosageDoseAndRateComponent doseAndRate = 
-                                dosage.addDoseAndRate();
-                            
-                            // Set as rate using the ratio
-                            doseAndRate.setRate(ratio);
-                            log.info("Set rate as Ratio on dosage");
-                            
-                            // Also set as dose if the path suggests it
-                            if (fhirPath.contains("dose")) {
-                                doseAndRate.setDose(numerator);
-                                log.info("Also set dose quantity");
-                            }
-                            
-                            // Return the entire resource to ensure it gets included in the bundle
-                            return targetResource;
-                        }
-                        
-                        // For any other resource type, just return the ratio
-                        log.info("Target is not a medication resource, returning ratio directly");
-                        return ratio;
-                    } catch (Exception e) {
-                        log.error("Error setting ratio on target resource: {}", e.getMessage(), e);
-                    }
-                }
-                
-                return ratio;
+                // Apply settings to target resource
+                return applyDosageSettings(targetResource, ratio, fhirPath);
                 
             } catch (Exception e) {
                 log.error("Error mapping OpenEHR DV_QUANTITY to FHIR Ratio", e);
@@ -294,107 +327,81 @@ public class TestPlugin extends Plugin {
                 log.info("Found ISO 8601 duration: {}", isoDuration);
                 
                 // Parse the ISO 8601 duration
-                int value = 0;
-                String unit = "";
+                DurationInfo durationInfo = parseIsoDuration(isoDuration);
                 
-                // Check for hours (most common case)
-                if (isoDuration.contains("H")) {
-                    value = extractNumericValue(isoDuration, "H");
-                    unit = "h";
-                } 
-                // Check for minutes
-                else if (isoDuration.contains("M") && isoDuration.contains("T")) {
-                    value = extractNumericValue(isoDuration, "M");
-                    unit = "min";
-                } 
-                // Check for seconds
-                else if (isoDuration.contains("S")) {
-                    value = extractNumericValue(isoDuration, "S");
-                    unit = "s";
-                } 
-                // Check for days
-                else if (isoDuration.contains("D")) {
-                    value = extractNumericValue(isoDuration, "D");
-                    unit = "d";
-                } 
-                // Check for weeks
-                else if (isoDuration.contains("W")) {
-                    value = extractNumericValue(isoDuration, "W");
-                    unit = "wk";
-                } 
-                // Check for months
-                else if (isoDuration.contains("M") && !isoDuration.contains("T")) {
-                    value = extractNumericValue(isoDuration, "M");
-                    unit = "mo";
-                } 
-                // Check for years
-                else if (isoDuration.contains("Y")) {
-                    value = extractNumericValue(isoDuration, "Y");
-                    unit = "a";
-                }
+                log.info("Parsed duration: {} {}", durationInfo.value, durationInfo.unit);
                 
-                log.info("Parsed duration: {} {}", value, unit);
+                // Create a Ratio with the denominator populated
+                Ratio ratio = createRatio(1, "", durationInfo.value, durationInfo.unit);
                 
-                // Create the denominator
-                Quantity denominator = new Quantity();
-                denominator.setValue(value);
-                denominator.setUnit(unit);
-                denominator.setSystem("http://unitsofmeasure.org");
-                denominator.setCode(unit);
+                log.info("Created Ratio with denominator value: {}, unit: {}", durationInfo.value, durationInfo.unit);
                 
-                // Create or update the Ratio
-                Ratio ratio = new Ratio();
-                
-                // If ratio doesn't have a numerator yet, create one
-                Quantity numerator = new Quantity();
-                numerator.setValue(1);
-                ratio.setNumerator(numerator);
-                ratio.setDenominator(denominator);
-                
-                log.info("Created Ratio with denominator value: {}, unit: {}", value, unit);
-                
-                // If we have a target resource, try to set this value directly
-                if (targetResource != null) {
-                    try {
-                        log.info("Target resource type: {}", targetResource.getClass().getSimpleName());
-                        org.hl7.fhir.r4.model.Dosage dosage = getDosage(targetResource);
-                        
-                        if (dosage != null) {
-                            // Handle different paths
-                            if (fhirPath.contains("doseAndRate.rate")) {
-                                // For rate, we're looking at a dose over time
-                                log.info("Path appears to be for doseAndRate.rate, setting as ratio");
-                                
-                                // In this case, we'll use the created Ratio directly
-                                org.hl7.fhir.r4.model.Dosage.DosageDoseAndRateComponent doseAndRate = 
-                                    dosage.addDoseAndRate();
-                                doseAndRate.setRate(ratio);
-                                
-                                log.info("Successfully set dose rate");
-                            } else {
-                                // Set frequency/timing
-                                setTimingOnDosage(dosage, value, unit);
-                                log.info("Set timing frequency");
-                            }
-                            
-                            // Return the entire resource to ensure it gets included in the bundle
-                            return targetResource;
-                        }
-                        
-                        // For any other resource type, just return the ratio
-                        log.info("Target is not a medication resource, returning ratio directly");
-                        return ratio;
-                    } catch (Exception e) {
-                        log.error("Error setting duration on target resource: {}", e.getMessage(), e);
-                    }
-                }
-                
-                return ratio;
+                // Apply settings to target resource
+                return applyDosageSettings(targetResource, ratio, fhirPath);
                 
             } catch (Exception e) {
                 log.error("Error mapping OpenEHR Duration to FHIR Ratio denominator", e);
                 return null;
             }
+        }
+
+        /**
+         * Helper class to store duration information
+         */
+        private static class DurationInfo {
+            int value;
+            String unit;
+            
+            DurationInfo(int value, String unit) {
+                this.value = value;
+                this.unit = unit;
+            }
+        }
+        
+        /**
+         * Parse ISO 8601 duration string into value and unit
+         */
+        private DurationInfo parseIsoDuration(String isoDuration) {
+            int value = 0;
+            String unit = "";
+            
+            // Check for hours (most common case)
+            if (isoDuration.contains("H")) {
+                value = extractNumericValue(isoDuration, "H");
+                unit = "h";
+            } 
+            // Check for minutes
+            else if (isoDuration.contains("M") && isoDuration.contains("T")) {
+                value = extractNumericValue(isoDuration, "M");
+                unit = "min";
+            } 
+            // Check for seconds
+            else if (isoDuration.contains("S")) {
+                value = extractNumericValue(isoDuration, "S");
+                unit = "s";
+            } 
+            // Check for days
+            else if (isoDuration.contains("D")) {
+                value = extractNumericValue(isoDuration, "D");
+                unit = "d";
+            } 
+            // Check for weeks
+            else if (isoDuration.contains("W")) {
+                value = extractNumericValue(isoDuration, "W");
+                unit = "wk";
+            } 
+            // Check for months
+            else if (isoDuration.contains("M") && !isoDuration.contains("T")) {
+                value = extractNumericValue(isoDuration, "M");
+                unit = "mo";
+            } 
+            // Check for years
+            else if (isoDuration.contains("Y")) {
+                value = extractNumericValue(isoDuration, "Y");
+                unit = "a";
+            }
+            
+            return new DurationInfo(value, unit);
         }
 
         /**
