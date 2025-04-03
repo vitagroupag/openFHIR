@@ -118,48 +118,6 @@ public class TestPlugin extends Plugin {
                     log.warn("Unknown mapping code: {}", mappingCode);
             }
             
-            // Set the result on the target resource if possible
-            if (result != null && targetResource != null && result instanceof Base) {
-                try {
-                    // Use FhirPathR4 to set the value on the target resource
-                    FhirPathR4 fhirPathEngine = new FhirPathR4(fhirContext);
-                    
-                    // Log what we're trying to set
-                    log.info("Setting {} on {} at path {}", 
-                             result.getClass().getSimpleName(), 
-                             targetResource.getClass().getSimpleName(),
-                             propertyPath);
-                    
-                    // Attempt to set the value
-                    boolean success = false;
-                    try {
-                        // Try to set the property directly if it's a standard FHIR property
-                        // This is a simplified example - in production, you would need more sophisticated logic
-                        if (propertyPath.equals("dosageInstruction.doseAndRate.dose")) {
-                            if (targetResource instanceof org.hl7.fhir.r4.model.MedicationRequest) {
-                                org.hl7.fhir.r4.model.MedicationRequest mr = (org.hl7.fhir.r4.model.MedicationRequest) targetResource;
-                                org.hl7.fhir.r4.model.Dosage dosage = mr.getDosageInstructionFirstRep();
-                                if (dosage == null) {
-                                    dosage = new org.hl7.fhir.r4.model.Dosage();
-                                    mr.addDosageInstruction(dosage);
-                                }
-                                dosage.addDoseAndRate().setDose((org.hl7.fhir.r4.model.Quantity)result);
-                                success = true;
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.warn("Failed to set property directly, will try general approach", e);
-                    }
-                    
-                    // Return the created object
-                    log.info("Returning {} from mapping function", result.getClass().getSimpleName());
-                    return result;
-                    
-                } catch (Exception e) {
-                    log.error("Failed to set value on target resource", e);
-                }
-            }
-            
             // If result is null but we modified the target resource, return the resource
             if (result == null && targetResourceModified && targetResource != null) {
                 log.info("No specific result but target resource was modified, returning: {}", 
@@ -171,14 +129,57 @@ public class TestPlugin extends Plugin {
         }
         
         /**
+         * Common method to get or create a dosage component on a medication resource
+         */
+        private org.hl7.fhir.r4.model.Dosage getDosage(Resource targetResource) {
+            if (targetResource instanceof org.hl7.fhir.r4.model.MedicationStatement) {
+                org.hl7.fhir.r4.model.MedicationStatement ms = 
+                    (org.hl7.fhir.r4.model.MedicationStatement) targetResource;
+                
+                org.hl7.fhir.r4.model.Dosage dosage = ms.getDosageFirstRep();
+                if (dosage == null) {
+                    dosage = new org.hl7.fhir.r4.model.Dosage();
+                    ms.addDosage(dosage);
+                }
+                return dosage;
+            } else if (targetResource instanceof org.hl7.fhir.r4.model.MedicationRequest) {
+                org.hl7.fhir.r4.model.MedicationRequest mr = 
+                    (org.hl7.fhir.r4.model.MedicationRequest) targetResource;
+                
+                org.hl7.fhir.r4.model.Dosage dosage = mr.getDosageInstructionFirstRep();
+                if (dosage == null) {
+                    dosage = new org.hl7.fhir.r4.model.Dosage();
+                    mr.addDosageInstruction(dosage);
+                }
+                return dosage;
+            }
+            return null;
+        }
+        
+        /**
+         * Common method to set timing on a dosage
+         */
+        private void setTimingOnDosage(org.hl7.fhir.r4.model.Dosage dosage, int value, String unit) {
+            org.hl7.fhir.r4.model.Timing timing = dosage.getTiming();
+            if (timing == null) {
+                timing = new org.hl7.fhir.r4.model.Timing();
+                dosage.setTiming(timing);
+            }
+            
+            org.hl7.fhir.r4.model.Timing.TimingRepeatComponent repeat = timing.getRepeat();
+            if (repeat == null) {
+                repeat = new org.hl7.fhir.r4.model.Timing.TimingRepeatComponent();
+                timing.setRepeat(repeat);
+            }
+            
+            repeat.setFrequency(1);
+            repeat.setPeriod(value);
+            repeat.setPeriodUnit(convertToUnitsOfTime(unit));
+        }
+        
+        /**
          * Converts OpenEHR DV_QUANTITY to FHIR Ratio
          * For medication dosage, mapping the magnitude and unit to the Ratio's numerator
-         * 
-         * @param openEhrPath The path to the OpenEHR data element
-         * @param flatJsonObject The complete OpenEHR flat JSON object
-         * @param fhirPath The FHIR path where the result should be placed
-         * @param targetResource The FHIR resource being populated
-         * @return The created FHIR Ratio object
          */
         private Object openEhrToFhirRatioToDvQuantity(String openEhrPath, JsonObject flatJsonObject, 
                                                      String fhirPath, Resource targetResource) {
@@ -237,68 +238,25 @@ public class TestPlugin extends Plugin {
                 if (targetResource != null) {
                     try {
                         log.info("Target resource type: {}", targetResource.getClass().getSimpleName());
+                        org.hl7.fhir.r4.model.Dosage dosage = getDosage(targetResource);
                         
-                        // For MedicationStatement
-                        if (targetResource instanceof org.hl7.fhir.r4.model.MedicationStatement) {
-                            log.info("Target is a MedicationStatement, setting dosage with rateRatio");
-                            org.hl7.fhir.r4.model.MedicationStatement ms = 
-                                (org.hl7.fhir.r4.model.MedicationStatement) targetResource;
-                            
-                            // Ensure we have a dosage
-                            org.hl7.fhir.r4.model.Dosage dosage = ms.getDosageFirstRep();
-                            if (dosage == null) {
-                                dosage = new org.hl7.fhir.r4.model.Dosage();
-                                ms.addDosage(dosage);
-                            }
-                            
+                        if (dosage != null) {
                             // Add dose and rate
                             org.hl7.fhir.r4.model.Dosage.DosageDoseAndRateComponent doseAndRate = 
                                 dosage.addDoseAndRate();
                             
                             // Set as rate using the ratio
                             doseAndRate.setRate(ratio);
-                            log.info("Set rate as Ratio on MedicationStatement dosage");
+                            log.info("Set rate as Ratio on dosage");
                             
                             // Also set as dose if the path suggests it
                             if (fhirPath.contains("dose")) {
                                 doseAndRate.setDose(numerator);
-                                log.info("Also set dose quantity on MedicationStatement");
+                                log.info("Also set dose quantity");
                             }
                             
-                            // Return the entire MedicationStatement to ensure it gets included in the bundle
-                            return ms;
-                        }
-                        
-                        // For MedicationRequest
-                        if (targetResource instanceof org.hl7.fhir.r4.model.MedicationRequest) {
-                            log.info("Target is a MedicationRequest, setting dosage with rate");
-                            
-                            org.hl7.fhir.r4.model.MedicationRequest mr = 
-                                (org.hl7.fhir.r4.model.MedicationRequest) targetResource;
-                            
-                            // Ensure we have a dosage
-                            org.hl7.fhir.r4.model.Dosage dosage = mr.getDosageInstructionFirstRep();
-                            if (dosage == null) {
-                                dosage = new org.hl7.fhir.r4.model.Dosage();
-                                mr.addDosageInstruction(dosage);
-                            }
-                            
-                            // Add dose and rate
-                            org.hl7.fhir.r4.model.Dosage.DosageDoseAndRateComponent doseAndRate = 
-                                dosage.addDoseAndRate();
-                            
-                            // Set as rate using the ratio
-                            doseAndRate.setRate(ratio);
-                            log.info("Set rate as Ratio on MedicationRequest dosage");
-                            
-                            // Also set as dose if the path suggests it
-                            if (fhirPath.contains("dose")) {
-                                doseAndRate.setDose(numerator);
-                                log.info("Also set dose quantity on MedicationRequest");
-                            }
-                            
-                            // Return the entire MedicationRequest to ensure it gets included in the bundle
-                            return mr;
+                            // Return the entire resource to ensure it gets included in the bundle
+                            return targetResource;
                         }
                         
                         // For any other resource type, just return the ratio
@@ -320,12 +278,6 @@ public class TestPlugin extends Plugin {
         /**
          * Converts OpenEHR Duration to FHIR Ratio's denominator
          * Extracts duration from ISO 8601 format and maps to FHIR Ratio denominator
-         * 
-         * @param openEhrPath The path to the OpenEHR data element
-         * @param flatJsonObject The complete OpenEHR flat JSON object
-         * @param fhirPath The FHIR path where the result should be placed
-         * @param targetResource The FHIR resource being populated
-         * @return The updated FHIR Ratio object
          */
         private Object openEhrToFhirDosageDurationToAdministrationDuration(String openEhrPath, JsonObject flatJsonObject, 
                                                                          String fhirPath, Resource targetResource) {
@@ -405,66 +357,9 @@ public class TestPlugin extends Plugin {
                 if (targetResource != null) {
                     try {
                         log.info("Target resource type: {}", targetResource.getClass().getSimpleName());
+                        org.hl7.fhir.r4.model.Dosage dosage = getDosage(targetResource);
                         
-                        // For MedicationStatement
-                        if (targetResource instanceof org.hl7.fhir.r4.model.MedicationStatement) {
-                            log.info("Target is a MedicationStatement, setting duration and frequency");
-                            org.hl7.fhir.r4.model.MedicationStatement ms = 
-                                (org.hl7.fhir.r4.model.MedicationStatement) targetResource;
-                            
-                            // Ensure we have a dosage
-                            org.hl7.fhir.r4.model.Dosage dosage = ms.getDosageFirstRep();
-                            if (dosage == null) {
-                                dosage = new org.hl7.fhir.r4.model.Dosage();
-                                ms.addDosage(dosage);
-                            }
-                            
-                            // Handle different paths
-                            if (fhirPath.contains("doseAndRate.rate")) {
-                                // Set as rate
-                                org.hl7.fhir.r4.model.Dosage.DosageDoseAndRateComponent doseAndRate = 
-                                    dosage.addDoseAndRate();
-                                doseAndRate.setRate(ratio);
-                                log.info("Set rate as Ratio on MedicationStatement dosage");
-                            } else {
-                                // Set frequency
-                                org.hl7.fhir.r4.model.Timing timing = dosage.getTiming();
-                                if (timing == null) {
-                                    timing = new org.hl7.fhir.r4.model.Timing();
-                                    dosage.setTiming(timing);
-                                }
-                                
-                                org.hl7.fhir.r4.model.Timing.TimingRepeatComponent repeat = timing.getRepeat();
-                                if (repeat == null) {
-                                    repeat = new org.hl7.fhir.r4.model.Timing.TimingRepeatComponent();
-                                    timing.setRepeat(repeat);
-                                }
-                                
-                                repeat.setFrequency(1);
-                                repeat.setPeriod(value);
-                                repeat.setPeriodUnit(convertToUnitsOfTime(unit));
-                                
-                                log.info("Set timing frequency on MedicationStatement");
-                            }
-                            
-                            // Return the entire resource to ensure it gets included in the bundle
-                            return ms;
-                        }
-                        
-                        // For MedicationRequest
-                        if (targetResource instanceof org.hl7.fhir.r4.model.MedicationRequest) {
-                            log.info("Target is a MedicationRequest, setting duration and frequency");
-                            
-                            org.hl7.fhir.r4.model.MedicationRequest mr = 
-                                (org.hl7.fhir.r4.model.MedicationRequest) targetResource;
-                            
-                            // Ensure we have a dosage
-                            org.hl7.fhir.r4.model.Dosage dosage = mr.getDosageInstructionFirstRep();
-                            if (dosage == null) {
-                                dosage = new org.hl7.fhir.r4.model.Dosage();
-                                mr.addDosageInstruction(dosage);
-                            }
-                            
+                        if (dosage != null) {
                             // Handle different paths
                             if (fhirPath.contains("doseAndRate.rate")) {
                                 // For rate, we're looking at a dose over time
@@ -475,30 +370,15 @@ public class TestPlugin extends Plugin {
                                     dosage.addDoseAndRate();
                                 doseAndRate.setRate(ratio);
                                 
-                                log.info("Successfully set dose rate on MedicationRequest");
+                                log.info("Successfully set dose rate");
                             } else {
                                 // Set frequency/timing
-                                org.hl7.fhir.r4.model.Timing timing = dosage.getTiming();
-                                if (timing == null) {
-                                    timing = new org.hl7.fhir.r4.model.Timing();
-                                    dosage.setTiming(timing);
-                                }
-                                
-                                org.hl7.fhir.r4.model.Timing.TimingRepeatComponent repeat = timing.getRepeat();
-                                if (repeat == null) {
-                                    repeat = new org.hl7.fhir.r4.model.Timing.TimingRepeatComponent();
-                                    timing.setRepeat(repeat);
-                                }
-                                
-                                repeat.setFrequency(1);
-                                repeat.setPeriod(value);
-                                repeat.setPeriodUnit(convertToUnitsOfTime(unit));
-                                
-                                log.info("Set timing frequency on MedicationRequest");
+                                setTimingOnDosage(dosage, value, unit);
+                                log.info("Set timing frequency");
                             }
                             
                             // Return the entire resource to ensure it gets included in the bundle
-                            return mr;
+                            return targetResource;
                         }
                         
                         // For any other resource type, just return the ratio
@@ -610,9 +490,6 @@ public class TestPlugin extends Plugin {
         
         /**
          * Formats a time value and unit into ISO 8601 duration format
-         * @param value the time value
-         * @param unit the time unit (year, month, week, day, hour, minute, second)
-         * @return ISO 8601 formatted duration string
          */
         private String formatIso8601Duration(int value, String unit) {
             StringBuilder duration = new StringBuilder("P");
@@ -649,8 +526,6 @@ public class TestPlugin extends Plugin {
         
         /**
          * Maps a UCUM or common time unit to OpenEHR DV_DURATION time unit
-         * @param unit the time unit from FHIR
-         * @return the corresponding OpenEHR time unit or null if not a time unit
          */
         private String mapToTimeUnit(String unit) {
             if (unit == null) {
@@ -734,8 +609,6 @@ public class TestPlugin extends Plugin {
                 String unit = numerator.getUnit() != null ? numerator.getUnit() : numerator.getCode();
                 
                 // Set the magnitude and unit in the flat composition with quantity_value suffix
-                // Using the format from the requirement example:
-                // "medikamentenliste/aussage_zur_medikamenteneinnahme:0/dosierung:0/dosis/quantity_value|magnitude"
                 flatJson.add(openEhrPath + "/quantity_value|magnitude", new JsonPrimitive(magnitude));
                 flatJson.add(openEhrPath + "/quantity_value|unit", new JsonPrimitive(unit));
                 
@@ -751,9 +624,6 @@ public class TestPlugin extends Plugin {
         
         /**
          * Helper method to extract numeric value from ISO 8601 duration string
-         * @param durationStr the duration string
-         * @param unitChar the unit character to look for (Y, M, W, D, H, M, S)
-         * @return the numeric value
          */
         private int extractNumericValue(String durationStr, String unitChar) {
             try {
@@ -764,23 +634,28 @@ public class TestPlugin extends Plugin {
                 }
                 
                 // For cases like "PT3H" where it might be in a different format
-                pattern = Pattern.compile("PT(\\d+)H");
-                matcher = pattern.matcher(durationStr);
-                if (unitChar.equals("H") && matcher.find()) {
-                    return Integer.parseInt(matcher.group(1));
+                if (unitChar.equals("H")) {
+                    pattern = Pattern.compile("PT(\\d+)H");
+                    matcher = pattern.matcher(durationStr);
+                    if (matcher.find()) {
+                        return Integer.parseInt(matcher.group(1));
+                    }
                 }
                 
-                // Additional patterns for other time units if needed
-                pattern = Pattern.compile("PT(\\d+)M");
-                matcher = pattern.matcher(durationStr);
-                if (unitChar.equals("M") && matcher.find()) {
-                    return Integer.parseInt(matcher.group(1));
+                if (unitChar.equals("M")) {
+                    pattern = Pattern.compile("PT(\\d+)M");
+                    matcher = pattern.matcher(durationStr);
+                    if (matcher.find()) {
+                        return Integer.parseInt(matcher.group(1));
+                    }
                 }
                 
-                pattern = Pattern.compile("PT(\\d+)S");
-                matcher = pattern.matcher(durationStr);
-                if (unitChar.equals("S") && matcher.find()) {
-                    return Integer.parseInt(matcher.group(1));
+                if (unitChar.equals("S")) {
+                    pattern = Pattern.compile("PT(\\d+)S");
+                    matcher = pattern.matcher(durationStr);
+                    if (matcher.find()) {
+                        return Integer.parseInt(matcher.group(1));
+                    }
                 }
                 
                 log.warn("Could not extract numeric value for unit {} from duration: {}", unitChar, durationStr);
