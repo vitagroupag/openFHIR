@@ -15,6 +15,8 @@ import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.Base;
+import org.hl7.fhir.r4.model.Timing;
+import org.hl7.fhir.r4.model.Range;
 import org.hl7.fhir.r4.hapi.fluentpath.FhirPathR4;
 import ca.uhn.fhir.context.FhirContext;
 
@@ -66,6 +68,8 @@ public class TestPlugin extends Plugin {
                     return dosageDurationToAdministrationDuration(openEhrPath, fhirValue, openEhrType, flatComposition);
                 case "ratio_to_dv_quantity":
                     return ratio_to_dv_quantity(openEhrPath, fhirValue, openEhrType, flatComposition);
+                case "timingToDaily_NonDaily":
+                    return timingToDaily_NonDaily(openEhrPath, fhirValue, openEhrType, flatComposition);
                 // Add other mapping functions as needed
                 default:
                     log.warn("Unknown mapping code: {}", mappingCode);
@@ -77,6 +81,11 @@ public class TestPlugin extends Plugin {
         public Object applyOpenEhrToFhirMapping(String mappingCode, String openEhrPath, 
                                                JsonObject flatJsonObject, String fhirPath, 
                                                Resource targetResource) {
+            log.info("OpenEHR to FHIR mapping is currently disabled");
+            return null;
+            
+            /* 
+            // Commenting out OpenEHR to FHIR mapping as requested
             log.info("Applying OpenEHR to FHIR mapping function: {}", mappingCode);
             log.info("OpenEHR Path: {}, FHIR Path: {}", openEhrPath, fhirPath);
             
@@ -127,6 +136,7 @@ public class TestPlugin extends Plugin {
             }
             
             return result;
+            */
         }
         
         /**
@@ -382,41 +392,102 @@ public class TestPlugin extends Plugin {
         }
 
         /**
+         * Mapping function for FHIR Timing to OpenEHR timing_daily cluster
+         * Maps frequency, timeOfDay, period, and other timing elements
+         */
+        private boolean timingToDaily_NonDaily(String openEhrPath, Object fhirValue, 
+                                      String openEhrType, Object flatComposition) {
+            return executeWithExceptionHandling("FHIR Timing to OpenEHR timing_daily", () -> {
+                log.info("Converting FHIR Timing to OpenEHR timing_daily");
+                
+                if (!(fhirValue instanceof Timing)) {
+                    log.warn("Expected Timing type but got: {}", fhirValue != null ? fhirValue.getClass().getName() : "null");
+                    return false;
+                }
+                
+                Timing timing = (Timing) fhirValue;
+                JsonObject flatJson = (JsonObject) flatComposition;
+                boolean success = false;
+                
+                // Only proceed if timing has repeat component
+                if (timing.hasRepeat()) {
+                    Timing.TimingRepeatComponent repeat = timing.getRepeat();
+                    
+                    // Map specific time (timeOfDay)
+                    if (repeat.hasTimeOfDay() && !repeat.getTimeOfDay().isEmpty()) {
+                        String timeOfDay = repeat.getTimeOfDay().get(0).getValue();
+                        if (timeOfDay != null) {
+                            setValueInJson(flatJson, openEhrPath + "/items[at0004]", timeOfDay);
+                            log.info("Mapped specific time: {}", timeOfDay);
+                            success = true;
+                        }
+                    }
+                    
+                    // Map frequency
+                    if (repeat.hasFrequency()) {
+                        int frequency = repeat.getFrequency();
+                        String frequencyText = String.valueOf(frequency);
+                        
+                        // Check if frequencyMax exists for range notation
+                        if (repeat.hasFrequencyMax()) {
+                            int frequencyMax = repeat.getFrequencyMax();
+                            frequencyText = frequency + "-" + frequencyMax;
+                        }
+                        
+                        // Add "times per day" if periodUnit is day
+                        if (repeat.hasPeriodUnit() && repeat.getPeriodUnit() == Timing.UnitsOfTime.D) {
+                            frequencyText += " times per day";
+                        } else if (repeat.hasPeriodUnit()) {
+                            frequencyText += " times per " + repeat.getPeriodUnit().getDisplay().toLowerCase();
+                        }
+                        
+                        setValueInJson(flatJson, openEhrPath + "/items[at0003]", frequencyText);
+                        log.info("Mapped frequency: {}", frequencyText);
+                        success = true;
+                    }
+                    
+                    // Map interval (period)
+                    if (repeat.hasPeriod()) {
+                        double period = repeat.getPeriod().doubleValue();
+                        String intervalText = "every ";
+                        
+                        // Check if periodMax exists for range notation
+                        if (repeat.hasPeriodMax()) {
+                            double periodMax = repeat.getPeriodMax().doubleValue();
+                            intervalText += period + "-" + periodMax + " ";
+                        } else {
+                            intervalText += period + " ";
+                        }
+                        
+                        // Add unit if available
+                        if (repeat.hasPeriodUnit()) {
+                            String unit = repeat.getPeriodUnit().getDisplay().toLowerCase();
+                            // Handle singular/plural
+                            if (period == 1) {
+                                intervalText += unit;
+                            } else {
+                                intervalText += unit + "s";
+                            }
+                        }
+                        
+                        setValueInJson(flatJson, openEhrPath + "/items[at0014]", intervalText);
+                        log.info("Mapped interval: {}", intervalText);
+                        success = true;
+                    }
+                }
+                
+                return success;
+            }, false);
+        }
+
+        /**
          * Converts OpenEHR DV_QUANTITY to FHIR Ratio
          * For medication dosage, mapping the magnitude and unit to the Ratio's numerator
          */
         private Object openEhrToFhirRatioToDvQuantity(String openEhrPath, JsonObject flatJsonObject, 
                                                      String fhirPath, Resource targetResource) {
-            return executeWithExceptionHandling("OpenEHR DV_QUANTITY to FHIR Ratio", () -> {
-                log.info("Converting OpenEHR DV_QUANTITY to FHIR Ratio");
-                
-                // Extract the base path (without the |magnitude or |unit suffix)
-                String basePath = openEhrPath;
-                if (basePath.contains("|")) {
-                    basePath = basePath.substring(0, basePath.lastIndexOf("|"));
-                }
-                
-                // Now we need to find the magnitude and unit values from the flat JSON
-                String magnitudePath = basePath + "/quantity_value|magnitude";
-                String unitPath = basePath + "/quantity_value|unit";
-                
-                log.info("Looking for magnitude at path: {}", magnitudePath);
-                log.info("Looking for unit at path: {}", unitPath);
-                
-                // Extract values from the flat JSON
-                double magnitude = getValueFromJson(flatJsonObject, magnitudePath, Double.class, 0.0);
-                String unit = getValueFromJson(flatJsonObject, unitPath, String.class, "");
-                
-                log.info("Extracted magnitude: {}, unit: {}", magnitude, unit);
-                
-                // Create a new Ratio with the numerator populated
-                Ratio ratio = createRatio(magnitude, unit, 1, "h");
-                
-                log.info("Created Ratio with numerator value: {}, unit: {}", magnitude, unit);
-                
-                // Apply settings to target resource
-                return applyDosageSettings(targetResource, ratio, fhirPath);
-            }, null);
+            // Commented out as requested
+            return null;
         }
         
         /**
@@ -425,66 +496,53 @@ public class TestPlugin extends Plugin {
          */
         private Object openEhrToFhirDosageDurationToAdministrationDuration(String openEhrPath, JsonObject flatJsonObject, 
                                                                          String fhirPath, Resource targetResource) {
-            return executeWithExceptionHandling("OpenEHR Duration to FHIR Ratio", () -> {
-                log.info("Converting OpenEHR Duration to FHIR Ratio Denominator");
-                
-                // Extract the ISO 8601 duration from the flat JSON
-                String isoDuration = getValueFromJson(flatJsonObject, openEhrPath, String.class, null);
-                if (isoDuration == null) {
-                    log.warn("No duration found at path: {}", openEhrPath);
-                    return null;
-                }
-                
-                log.info("Found ISO 8601 duration: {}", isoDuration);
-                
-                // Parse the ISO 8601 duration
-                DurationInfo durationInfo = parseIsoDuration(isoDuration);
-                
-                log.info("Parsed duration: {} {}", durationInfo.value, durationInfo.unit);
-                
-                // Create a Ratio with the denominator populated
-                Ratio ratio = createRatio(1, "", durationInfo.value, durationInfo.unit);
-                
-                log.info("Created Ratio with denominator value: {}, unit: {}", durationInfo.value, durationInfo.unit);
-                
-                // Apply settings to target resource
-                return applyDosageSettings(targetResource, ratio, fhirPath);
-            }, null);
+            // Commented out as requested
+            return null;
         }
 
         /**
          * Converts FHIR dosage duration to OpenEHR administration duration
-         * This function extracts the time duration from the denominator of a FHIR Ratio
-         * and maps it to an OpenEHR DV_DURATION in ISO 8601 format
+         * This function extracts the time duration from the Timing.repeat component
+         * and maps it to an OpenEHR administration duration
          */
         private boolean dosageDurationToAdministrationDuration(String openEhrPath, Object fhirValue, 
                                                           String openEhrType, Object flatComposition) {
             return executeWithExceptionHandling("dosage duration to administration duration", () -> {
-                log.info("Converting dosage duration to administration duration");
+                log.info("Converting timing repeat to administration duration");
                 
-                ValidationResult validation = validateRatio(fhirValue, "dosage duration");
-                if (!validation.success || !validation.denominatorValid) {
+                if (!(fhirValue instanceof Timing.TimingRepeatComponent)) {
+                    log.warn("Expected TimingRepeatComponent but got: {}", 
+                           fhirValue != null ? fhirValue.getClass().getName() : "null");
                     return false;
                 }
                 
+                Timing.TimingRepeatComponent repeat = (Timing.TimingRepeatComponent) fhirValue;
                 JsonObject flatJson = (JsonObject) flatComposition;
                 
-                // Check if the unit is a time unit before mapping
-                String timeUnit = mapToTimeUnit(validation.denominatorUnit);
-                if (timeUnit == null) {
-                    log.info("Denominator unit '{}' is not a time unit, skipping duration mapping", validation.denominatorUnit);
+                // Check if duration exists
+                if (!repeat.hasDuration()) {
+                    log.info("No duration found in timing repeat");
                     return false;
                 }
                 
-                // Convert to ISO 8601 duration format: P[nnY][nnM][nnW][nnD][T[nnH][nnM][nnS]]
-                int timeValue = (int) Math.round(validation.denominatorValue);
-                String isoDuration = formatIso8601Duration(timeValue, timeUnit);
+                // Format the duration, with range if durationMax exists
+                double duration = repeat.getDuration().doubleValue();
+                String durationText = String.valueOf(duration);
                 
-                // Add the ISO 8601 duration to the flat composition
-                setValueInJson(flatJson, openEhrPath, isoDuration);
+                if (repeat.hasDurationMax()) {
+                    double durationMax = repeat.getDurationMax().doubleValue();
+                    durationText = duration + "-" + durationMax;
+                }
                 
-                log.info("Mapped duration: {} {} to {} with ISO 8601 format: {}", 
-                         timeValue, timeUnit, openEhrPath, isoDuration);
+                // Add unit if available
+                if (repeat.hasDurationUnit()) {
+                    durationText += " " + repeat.getDurationUnit().getDisplay().toLowerCase();
+                }
+                
+                // Add the duration to the flat composition
+                setValueInJson(flatJson, openEhrPath, durationText);
+                
+                log.info("Mapped administration duration: {}", durationText);
                 return true;
             }, false);
         }
@@ -496,7 +554,7 @@ public class TestPlugin extends Plugin {
         private boolean ratio_to_dv_quantity(String openEhrPath, Object fhirValue, 
                                      String openEhrType, Object flatComposition) {
             return executeWithExceptionHandling("FHIR Ratio to OpenEHR DV_QUANTITY", () -> {
-                log.info("Converting FHIR Ratio to OpenEHR DV_QUANTITY");
+                log.info("Converting FHIR Ratio to OpenEHR Administration Rate");
                 
                 ValidationResult validation = validateRatio(fhirValue, "ratio conversion");
                 if (!validation.success || !validation.numeratorValid) {
@@ -505,12 +563,17 @@ public class TestPlugin extends Plugin {
                 
                 JsonObject flatJson = (JsonObject) flatComposition;
                 
-                // Set the magnitude and unit in the flat composition with quantity_value suffix
-                setValueInJson(flatJson, openEhrPath + "/quantity_value|magnitude", validation.numeratorValue);
-                setValueInJson(flatJson, openEhrPath + "/quantity_value|unit", validation.numeratorUnit);
+                // Format as numerator/denominator (e.g., "600 mg/h")
+                String formattedRate = validation.numeratorValue + " " + validation.numeratorUnit;
+                if (validation.denominatorValid) {
+                    formattedRate += "/" + validation.denominatorUnit;
+                }
                 
-                log.info("Mapped Ratio numerator to DV_QUANTITY: path={}, magnitude={}, unit={}", 
-                        openEhrPath, validation.numeratorValue, validation.numeratorUnit);
+                // Set the formatted rate directly on the path
+                setValueInJson(flatJson, openEhrPath, formattedRate);
+                
+                log.info("Mapped Ratio to Administration Rate: path={}, value={}", 
+                         openEhrPath, formattedRate);
                 return true;
             }, false);
         }
