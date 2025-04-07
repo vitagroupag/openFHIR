@@ -122,10 +122,7 @@ public class OpenFhirStringUtilsTest {
                 "diagnose/diagnose:0/language|code",
                 "diagnose/diagnose:0/language|terminology"
         );
-        final Map<String, List<String>> stringListMap = new OpenEhrToFhir(null, null, null,
-                                                                          null, null, null,
-                                                                          null, null, null, null,
-                                                                          null, null, null).joinValuesThatAreOne(
+        final Map<String, List<String>> stringListMap = new OpenFhirStringUtils().joinValuesThatAreOne(
                 toJoin);
         Assert.assertEquals(3, stringListMap.get("diagnose/diagnose:0/klinischer_status/klinischer_status").size());
 
@@ -437,6 +434,13 @@ public class OpenFhirStringUtilsTest {
                                                               condition,
                                                               "Observation",
                                                               null));
+        // parent path has multiple where conditions
+        Assert.assertEquals(
+                "Condition.code.coding.where(system.toString().contains('http://fhir.de/CodeSystem/bfarm/icd-10-gm')).extension.where(url.toString().contains('http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit')).value",
+                openFhirStringUtils.getFhirPathWithConditions("Condition.code.coding.extension.value",
+                                                              null,
+                                                              "Observation",
+                                                              "Condition.code.coding.where(system.toString().contains('http://fhir.de/CodeSystem/bfarm/icd-10-gm')).extension.where(url.toString().contains('http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit'))"));
 
     }
 
@@ -494,7 +498,69 @@ public class OpenFhirStringUtilsTest {
                 "Encounter.location.where(physicalType.coding.code.toString().contains('ro')).location.as(Reference).identifier.value");
         Assert.assertEquals(
                 "Encounter.location.where(physicalType.coding.code.toString().contains('ro')).physicalType.coding.system",
+                s);// multiple where's in parent path
+        s = openFhirStringUtils.setParentsWherePathToTheCorrectPlace(
+                "Condition.code.coding.extension.value",
+                "Condition.code.coding.where(system.toString().contains('http://fhir.de/CodeSystem/bfarm/icd-10-gm')).extension.where(url.toString().contains('http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit'))");
+        Assert.assertEquals(
+                "Condition.code.coding.where(system.toString().contains('http://fhir.de/CodeSystem/bfarm/icd-10-gm')).extension.where(url.toString().contains('http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit')).value",
+                s);
+
+        // multiple where's in parent path
+        s = openFhirStringUtils.setParentsWherePathToTheCorrectPlace(
+                "Condition.code.coding.where(system.toString().contains('http://fhir.de/CodeSystem/bfarm/icd-10-gm')).extension",
+                "Condition.code.coding.where(system.toString().contains('http://fhir.de/CodeSystem/bfarm/icd-10-gm')).extension.where(url.toString().contains('http://fhir.de/StructureDefinition/icd-10-gm-mehrfachcodierungs-kennzeichen'))");
+        Assert.assertEquals(
+                "Condition.code.coding.where(system.toString().contains('http://fhir.de/CodeSystem/bfarm/icd-10-gm')).extension.where(url.toString().contains('http://fhir.de/StructureDefinition/icd-10-gm-mehrfachcodierungs-kennzeichen'))",
                 s);
     }
+
+
+
+    @Test
+    public void joinValuesThatAreOne() {
+        final List<String> toJoin = Arrays.asList(
+                "growth_chart/body_weight/any_event:1/weight|unit",
+                "growth_chart/body_weight/any_event:1/comment",
+                "growth_chart/body_weight/any_event:1/state_of_dress|code",
+                "growth_chart/body_weight/any_event:1/state_of_dress|terminology",
+                "growth_chart/body_weight/any_event:1/state_of_dress|value",
+                "growth_chart/body_weight/any_event:1/confounding_factors:0",
+                "growth_chart/body_weight/any_event:1/time",
+                "growth_chart/body_weight/any_event:2/weight|unit",
+                "growth_chart/body_weight/any_event:2/weight|magnitude",
+                "growth_chart/body_weight/any_event:2/comment",
+                "growth_chart/body_weight/any_event:2/state_of_dress|code",
+                "growth_chart/body_weight/any_event:2/state_of_dress|value",
+                "growth_chart/body_weight/any_event:2/state_of_dress|terminology",
+                "growth_chart/body_weight/any_event:2/confounding_factors:0",
+                "growth_chart/body_weight/any_event:2/time",
+                "growth_chart/body_weight/any_event:2/width",
+                "growth_chart/body_weight/any_event:2/math_function|terminology",
+                "growth_chart/body_weight/any_event:2/math_function|code",
+                "growth_chart/body_weight/any_event:2/math_function|value",
+                "growth_chart/body_weight/language|code",
+                "growth_chart/body_weight/language|terminology",
+                "growth_chart/body_weight/encoding|code",
+                "growth_chart/body_weight/encoding|terminology",
+                "growth_chart/body_weight/_work_flow_id|id",
+                "growth_chart/body_weight/_work_flow_id|id_scheme",
+                "growth_chart/body_weight/_work_flow_id|namespace",
+                "growth_chart/body_weight/_work_flow_id|type",
+                "growth_chart/body_weight/_guideline_id|id"
+        );
+        final Map<String, List<String>> stringListMap = new OpenFhirStringUtils().joinValuesThatAreOne(toJoin);
+        Assert.assertEquals(3, stringListMap.get("growth_chart/body_weight/any_event:1/state_of_dress").size());
+        Assert.assertEquals("growth_chart/body_weight/any_event:1/state_of_dress|code",
+                            stringListMap.get("growth_chart/body_weight/any_event:1/state_of_dress").get(0));
+        Assert.assertEquals("growth_chart/body_weight/any_event:1/state_of_dress|terminology",
+                            stringListMap.get("growth_chart/body_weight/any_event:1/state_of_dress").get(1));
+        Assert.assertEquals("growth_chart/body_weight/any_event:1/state_of_dress|value",
+                            stringListMap.get("growth_chart/body_weight/any_event:1/state_of_dress").get(2));
+        Assert.assertEquals(3, stringListMap.get("growth_chart/body_weight/any_event:2/math_function").size());
+        Assert.assertEquals(2, stringListMap.get("growth_chart/body_weight/encoding").size());
+        Assert.assertEquals(1, stringListMap.get("growth_chart/body_weight/any_event:1/confounding_factors:0").size());
+    }
+
 
 }

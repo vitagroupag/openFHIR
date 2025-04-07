@@ -4,6 +4,8 @@ import com.medblocks.openfhir.db.FhirConnectService;
 import com.medblocks.openfhir.db.OptService;
 import com.medblocks.openfhir.db.entity.BootstrapEntity;
 import com.medblocks.openfhir.db.repository.BootstrapRepository;
+import com.medblocks.openfhir.fc.schema.context.FhirConnectContext;
+import com.medblocks.openfhir.fc.schema.model.FhirConnectModel;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
 @Component
 @Slf4j
@@ -37,14 +40,17 @@ public class BootstrapRunner implements ApplicationRunner {
     private final BootstrapRepository bootstrapRepository;
     private final FhirConnectService service;
     private final OptService optService;
+    private final Yaml yamlParser;
 
     @Autowired
     public BootstrapRunner(final BootstrapRepository bootstrapRepository,
                            final FhirConnectService service,
-                           final OptService optService) {
+                           final OptService optService,
+                           final Yaml yamlParser) {
         this.bootstrapRepository = bootstrapRepository;
         this.service = service;
         this.optService = optService;
+        this.yamlParser = yamlParser;
     }
 
     @Override
@@ -108,10 +114,10 @@ public class BootstrapRunner implements ApplicationRunner {
 
             if (fileType == FileType.MODEL) {
                 log.info("Creating model file {} from bootstrap.", fileName);
-                service.upsertModelMapper(fileContents, null, "bootstrap-req");
+                service.upsertModelMapper(yamlParser.loadAs(fileContents, FhirConnectModel.class), null, "bootstrap-req");
             } else if (fileType == FileType.CONTEXT) {
                 log.info("Creating context file {} from bootstrap.", fileName);
-                service.upsertContextMapper(fileContents, null, "bootstrap-req");
+                service.upsertContextMapper(yamlParser.loadAs(fileContents, FhirConnectContext.class), null, "bootstrap-req");
             } else if (fileType == FileType.OPT) {
                 log.info("Creating OPT file {} from bootstrap.", fileName);
                 optService.upsert(fileContents, null, "bootstrap-req");

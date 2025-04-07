@@ -2,6 +2,8 @@
 package com.medblocks.openfhir.fc;
 
 import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_ROOT_FC;
+import static com.medblocks.openfhir.fc.FhirConnectConst.UNIDIRECTIONAL_TOFHIR;
+import static com.medblocks.openfhir.fc.FhirConnectConst.UNIDIRECTIONAL_TOOPENEHR;
 
 import com.medblocks.openfhir.fc.schema.model.Condition;
 import com.medblocks.openfhir.fc.schema.model.FhirConnectModel;
@@ -99,6 +101,7 @@ public class OpenFhirFhirConnectModelMapper {
                     if (manual.getOpenehr() != null) {
                         for (final ManualEntry openEhrManualEntry : manual.getOpenehr()) {
                             final Mapping fromManual = new Mapping();
+                            fromManual.setUnidirectional(UNIDIRECTIONAL_TOOPENEHR);
                             fromManual.setName(mapping.getName() + "." + manual.getName());
                             fromManual.setWith(new With()
                                                        .withValue(openEhrManualEntry.getValue())
@@ -111,9 +114,11 @@ public class OpenFhirFhirConnectModelMapper {
                     if (manual.getFhir() != null) {
                         for (final ManualEntry fhirManualEntry : manual.getFhir()) {
                             final Mapping fromManual = new Mapping();
+                            fromManual.setUnidirectional(UNIDIRECTIONAL_TOFHIR);
                             fromManual.setName(mapping.getName() + "." + manual.getName());
                             fromManual.setWith(new With()
                                                        .withValue(fhirManualEntry.getValue())
+                                                       .withOpenehr(mapping.getWith().getOpenehr())
                                                        .withFhir(mapping.getWith().getFhir() + "." + fhirManualEntry.getPath()));
                             if (manual.getOpenehrCondition() != null) {
                                 final Condition openEhrCondition = manual.getOpenehrCondition().copy();

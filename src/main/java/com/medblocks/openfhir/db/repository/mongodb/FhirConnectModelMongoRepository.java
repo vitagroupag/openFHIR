@@ -1,7 +1,9 @@
 package com.medblocks.openfhir.db.repository.mongodb;
 
+import com.medblocks.openfhir.db.entity.FhirConnectContextEntity;
 import com.medblocks.openfhir.db.entity.FhirConnectModelEntity;
 import com.medblocks.openfhir.db.repository.FhirConnectModelRepository;
+import lombok.NonNull;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
@@ -13,4 +15,7 @@ public interface FhirConnectModelMongoRepository extends FhirConnectModelReposit
 
     @Query("{'fhirConnectModel.metadata.name': { $in: ?0 }}")
     List<FhirConnectModelEntity> findByName(final List<String> name);
+
+    @Query("{'id': ?0}")
+    FhirConnectModelEntity byId(@NonNull final String id);
 }

@@ -186,7 +186,7 @@ public class DiagnoseTest extends KdsBidirectionalTest {
 
 
         Assert.assertEquals("C34.1", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|code").getAsString());
-        Assert.assertEquals("Malignant neoplasm of the upper lobe of the lung", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|value").getAsString());
+        Assert.assertEquals("Secondary malignant neoplasm of lymph node", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/bfarm/icd-10-gm", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|terminology").getAsString());
         Assert.assertEquals("G", jsonObject.get("diagnose/diagnose:0/diagnosesicherheit|code").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dimdi/diagnosesicherheit",
@@ -248,7 +248,7 @@ public class DiagnoseTest extends KdsBidirectionalTest {
 
         Assert.assertEquals("2027-05-02T02:00:00", jsonObject.get("diagnose/context/start_time").getAsString());
         Assert.assertEquals("C34.1", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|code").getAsString());
-        Assert.assertEquals("Malignant neoplasm of the upper lobe of the lung", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|value").getAsString());
+        Assert.assertEquals("Secondary malignant neoplasm of lymph node", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/bfarm/icd-10-gm", jsonObject.get("diagnose/diagnose:0/kodierte_diagnose|terminology").getAsString());
         Assert.assertEquals("G", jsonObject.get("diagnose/diagnose:0/diagnosesicherheit|code").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dimdi/diagnosesicherheit",
@@ -308,7 +308,7 @@ public class DiagnoseTest extends KdsBidirectionalTest {
 //                            jsonObject.get("diagnose/diagnose:0/anatomische_lokalisation/laterality|value").getAsString());
 
         Assert.assertEquals("ref_C34.1", jsonObject.get("diagnose/diagnose:1/kodierte_diagnose|code").getAsString());
-        Assert.assertEquals("ref_Malignant neoplasm of upper lobe, bronchus or lung", jsonObject.get("diagnose/diagnose:1/kodierte_diagnose|value").getAsString());
+        Assert.assertEquals("Malignant neoplasm of upper lobe, bronchus or lung", jsonObject.get("diagnose/diagnose:1/kodierte_diagnose|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/bfarm/icd-10-gm", jsonObject.get("diagnose/diagnose:1/kodierte_diagnose|terminology").getAsString());
         Assert.assertEquals("ref_S", jsonObject.get("diagnose/diagnose:1/diagnosesicherheit|code").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dimdi/diagnosesicherheit",

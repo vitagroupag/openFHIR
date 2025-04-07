@@ -65,20 +65,6 @@ public class IntermediateCacheProcessing {
             if (elementMatching != null) {
                 return new OpenEhrToFhir.FindingOuterMost(instantiatedIntermediateElements.get(elementMatching), removedPath);
             }
-//            else {
-//                // if keyToCheckFor ends with index, try to find it without an index if it's an array
-//                if(Character.isDigit(keyToCheckFor.charAt(keyToCheckFor.length()-1))) {
-//                    final String keyToCheckForWithoutDigit = keyToCheckFor.replaceAll(":?\\d+$", "");
-//                    final List<String> elementsMatchingArrays = extractMatchingElementsFromIntermediateCache(instantiatedIntermediateElements,
-//                                                                                                             keyToCheckForWithoutDigit);
-//
-//                    elementsMatchingArrays.sort(Comparator.comparingInt(String::length));
-//                    final String elementArraysMatching = elementsMatchingArrays.isEmpty() ? null : elementsMatchingArrays.get(0);
-//                    if (elementArraysMatching != null) {
-//                        return new OpenEhrToFhir.FindingOuterMost(instantiatedIntermediateElements.get(elementArraysMatching), removedPath);
-//                    }
-//                }
-//            }
         }
         if (instantiatedIntermediateElements.containsKey(keyForIntermediateElements)) {
             return new OpenEhrToFhir.FindingOuterMost(instantiatedIntermediateElements.get(keyForIntermediateElements), removedPath);

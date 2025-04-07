@@ -685,10 +685,11 @@ public class FhirToOpenEhr {
                                 .replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC + ".", "")
                                 .replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC, ""));
             } else {
-                if (with.getOpenehr().equals(FhirConnectConst.OPENEHR_ARCHETYPE_FC)) {
-                    // if you did $archetype, then we replace with parent's path
+                if (with.getOpenehr().equals(FhirConnectConst.OPENEHR_ROOT_FC)) {
                     with.setOpenehr(openehr);
-                } else {
+                } else if (with.getOpenehr().equals(FhirConnectConst.OPENEHR_ARCHETYPE_FC)) {
+                    with.setOpenehr(openEhrPath);
+                }else {
                     // if you prefixed it with $archetype, it means you know what you're setting yourself
                     with.setOpenehr(with.getOpenehr()
                                             .replace(FhirConnectConst.REFERENCE + ".", "")
