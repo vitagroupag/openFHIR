@@ -11,7 +11,7 @@ mappings:
     with:
       fhir: "$fhirResource.identifier"
       openehr: "$openEhrArchetype.medikationseintrag.identifier.externer_identifier"
-      type: "IDENTIFIER"
+      
     condition:
       targetRoot: "$fhirResource.identifier"
       targetAttribute: "system"
@@ -36,7 +36,7 @@ mappings:
     with:
       fhir: "$fhirResource.dosage.text"
       openehr: "$openEhrArchetype.medikationseintrag.dosierung"
-      type: "STRING"
+      
 
   - name: "effective"
     with:
@@ -49,12 +49,12 @@ mappings:
           with:
             fhir: "start"
             openehr: "startzeitpunkt_einnahme"
-            type: "DATETIME"
+            
         - name: "end effective"
           with:
             fhir: "end"
             openehr: "endzeitpunkt_einnahme"
-            type: "DATETIME"
+            
 
   - name: "medication"
     with:

@@ -23,13 +23,13 @@ mappings:
           with:
             fhir: "start"
             openehr: "start_time"
-            type: "DATETIME"
+
 
         - name: "contextEnd"
           with:
             fhir: "end"
             openehr: "_end_time"
-            type: "DATETIME"
+
 
   - name: "firstLevelTest"
     with:

@@ -81,7 +81,7 @@ public class OpenFhirStringUtils {
         openEhrTypes.add("terminology_id/value");
         openEhrTypes.add("defining_code/code_string");
         openEhrTypes.add("defining_code");
-        openEhrTypes.add("value");
+        openEhrTypes.add("/value");
         openEhrTypes.add("code_string");
         for (String openEhrType : openEhrTypes) {
             if (path.endsWith(openEhrType)) {
@@ -665,8 +665,6 @@ public class OpenFhirStringUtils {
 
         return constructedChildPath;
     }
-
-
 
     /**
      * i.e.

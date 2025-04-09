@@ -16,5 +16,6 @@ public interface OptMongoRepository extends OptRepository, MongoRepository<OptEn
 
     OptEntity findByTemplateId(final String templateId);
 
+    @Query(value = "{'id': ?0}")
     OptEntity byId(final String id);
 }

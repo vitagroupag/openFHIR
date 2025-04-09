@@ -1,5 +1,8 @@
 package com.medblocks.openfhir.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.medblocks.openfhir.fc.schema.context.FhirConnectContext;
@@ -18,22 +21,10 @@ import org.yaml.snakeyaml.representer.Representer;
 
 public class OpenFhirTestUtility {
 
-    public static Yaml getYaml() {
-        final LoaderOptions loaderOptions = new LoaderOptions();
-        final Representer representer = new Representer(new DumperOptions());
-        representer.getPropertyUtils().setSkipMissingProperties(true);
-        loaderOptions.setEnumCaseSensitive(false);
-        final Constructor constructor = new Constructor(loaderOptions);
-        constructor.setPropertyUtils(new PropertyUtils() {
-            @Override
-            public Property getProperty(Class<? extends Object> type, String name) {
-                if ( name.equals("extends") ) {
-                    name = "_extends";
-                }
-                return super.getProperty(type, name);
-            }
-        });
-        return new Yaml(constructor, representer);
+    public static ObjectMapper getYaml() {
+        final YAMLMapper mapper = new YAMLMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL); // skip nulls
+        return mapper;
     }
 
 

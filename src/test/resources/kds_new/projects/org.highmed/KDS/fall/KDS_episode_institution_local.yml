@@ -14,21 +14,21 @@ mappings:
     with:
       fhir: "$resource.type"
       openehr: "$composition/context/other_context[at0001]/items[at0005]"
-      type: "CODEABLECONCEPT"
+      
 
   - name: "fallklasse"
     extension: "add"
     with:
       fhir: "$resource.class"
       openehr: "$composition/context/other_context[at0001]/items[at0004]"
-      type: "CODING"
+      
 
   - name: "fallart"
     extension: "add"
     with:
       fhir: "$resource.status"
       openehr: "$composition/context/other_context[at0001]/items[at0010]"
-      type: "CODING"
+      
 
   - name: "fallIdParent"
     extension: "add"
@@ -47,7 +47,7 @@ mappings:
           with:
             fhir: "value"
             openehr: "$composition/context/other_context[at0001]/items[at0003]"
-            type: "STRING"
+            
         - name: "vncodingcode"
           with:
             fhir: "type.coding"
@@ -96,9 +96,9 @@ mappings:
 
         - name: "ersteUndZweiteStelle"
           with:
-            fhir: "extension.value" # since its two extensions nested
+            fhir: "extension.value.as(Coding)" # since its two extensions nested
             openehr: "data[at0001]/items[at0008 and name/value='Aufnahmegrund - ErsteUndZweiteStelle']"
-            type: "CODING"
+            
           fhirCondition:
             targetRoot: "extension"
             targetAttribute: "url"
@@ -107,9 +107,9 @@ mappings:
 
         - name: "dritteStelle"
           with:
-            fhir: "extension.value"
+            fhir: "extension.value.as(Coding)"
             openehr: "data[at0001]/items[at0008 and name/value='Aufnahmegrund - Dritte Stelle']"
-            type: "CODING"
+            
           fhirCondition:
             targetRoot: "extension"
             targetAttribute: "url"
@@ -119,92 +119,14 @@ mappings:
 
         - name: "vierteStelle"
           with:
-            fhir: "extension.value"
+            fhir: "extension.value.as(Coding)"
             openehr: "data[at0001]/items[at0008 and name/value='Aufnahmegrund - Vierte Stelle']"
-            type: "CODING"
+            
           fhirCondition:
             targetRoot: "extension"
             targetAttribute: "url"
             operator: "one of"
             criteria: "VierteStelle"
-
-#        - name: "ersteUndZweiteStelle"
-#          with:
-#            fhir: "extension" # since its two extensions nested
-#            openehr: "$archetype"
-#            type: "NONE"
-#          fhirCondition:
-#            targetRoot: "extension"
-#            targetAttribute: "url"
-#            operator: "one of"
-#            criteria: "ErsteUndZweiteStelle"
-#          followedBy:
-#            mappings:
-#              - name: "ersteUndZweiteStelle"
-#                with:
-#                  fhir: "value" # since its two extensions nested
-#                  openehr: "data[at0001]/items[at0008 and name/value='Aufnahmegrund - ErsteUndZweiteStelle']"
-#                  type: "CODING"
-#              - name: "extensionStatic"
-#                with:
-#                  fhir: "url"
-#                manual:
-#                  - name: "extension"
-#                    fhir:
-#                      - path: ""
-#                        value: "ErsteUndZweiteStelle"
-#
-#        - name: "dritteStelleParent"
-#          with:
-#            fhir: "extension" # since its two extensions nested
-#            openehr: "$archetype"
-#            type: "NONE"
-#          fhirCondition:
-#            targetRoot: "extension"
-#            targetAttribute: "url"
-#            operator: "one of"
-#            criteria: "DritteStelle"
-#          followedBy:
-#            mappings:
-#              - name: "dritteStelle"
-#                with:
-#                  fhir: "value" # since its two extensions nested
-#                  openehr: "data[at0001]/items[at0008 and name/value='Aufnahmegrund - Dritte Stelle']"
-#                  type: "CODING"
-#              - name: "extensionStatic"
-#                with:
-#                  fhir: "url"
-#                manual:
-#                  - name: "extension"
-#                    fhir:
-#                      - path: ""
-#                        value: "DritteStelle"
-#
-#        - name: "vierteStelleParent"
-#          with:
-#            fhir: "extension" # since its two extensions nested
-#            openehr: "$archetype"
-#            type: "NONE"
-#          fhirCondition:
-#            targetRoot: "extension"
-#            targetAttribute: "url"
-#            operator: "one of"
-#            criteria: "VierteStelle"
-#          followedBy:
-#            mappings:
-#              - name: "vierteStelle"
-#                with:
-#                  fhir: "value" # since its two extensions nested
-#                  openehr: "data[at0001]/items[at0008 and name/value='Aufnahmegrund - Vierte Stelle']"
-#                  type: "CODING"
-#              - name: "extensionStatic"
-#                with:
-#                  fhir: "url"
-#                manual:
-#                  - name: "extension"
-#                    fhir:
-#                      - path: ""
-#                        value: "VierteStelle"
 
 
   - name: "recordingDismissal"
@@ -219,13 +141,13 @@ mappings:
           with:
             fhir: "admitSource.coding"
             openehr: "data[at0001]/items[at0009]"
-            type: "CODING"
+            
 
         - name: "entlassungsgrund"
           with:
             fhir: "dischargeDisposition.extension"
-            openehr: "data[at0001]/items[at0006]"
-            type: "CODING"
+            openehr: "$openehrRoot"
+            type: "NONE"
           fhirCondition:
             targetRoot: "dischargeDisposition.extension"
             targetAttribute: "url"
@@ -233,6 +155,10 @@ mappings:
             criteria: "http://fhir.de/StructureDefinition/Entlassungsgrund"
           followedBy:
             mappings:
+              - name: "entlassungsgrundValue"
+                with:
+                  fhir: "value.as(Coding)"
+                  openehr: "data[at0001]/items[at0006]"
               - name: "entlassungsgrundUrl"
                 with:
                   fhir: "dischargeDisposition.extension"
@@ -241,6 +167,7 @@ mappings:
                     fhir:
                       - path: "url"
                         value: "http://fhir.de/StructureDefinition/Entlassungsgrund"
+
 
   - name: "problemDiagnoseParent"
     extension: "add"

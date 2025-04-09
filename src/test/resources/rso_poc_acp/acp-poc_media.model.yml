@@ -15,5 +15,10 @@ mappings:
   - name: "media"
     with:
       fhir: "$fhirRoot"
-      openehr: "$composition/content[openEHR-EHR-EVALUATION.advance_care_directive.v2]/protocol[at0010]/items[openEHR-EHR-CLUSTER.media_file.v1]/items[at0001]"
-      type: "MEDIA"
+      openehr: "$archetype/items[at0001]"
+    followedBy:
+      mappings:
+        - name: "title"
+          with:
+            fhir: "title"
+            openehr: "$archetype/items[at0002]"

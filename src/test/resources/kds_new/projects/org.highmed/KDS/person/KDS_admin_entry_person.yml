@@ -14,7 +14,7 @@ mappings:
     with:
       fhir: "$resource.identifier"
       openehr: "$composition/context/other_context[at0003]/items[at0004]"
-      type: "IDENTIFIER"
+      
     fhirCondition:
       targetRoot: "$resource.identifier"
       targetAttribute: "type.coding.code"

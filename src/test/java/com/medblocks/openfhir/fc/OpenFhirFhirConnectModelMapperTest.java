@@ -1,21 +1,22 @@
 package com.medblocks.openfhir.fc;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medblocks.openfhir.fc.schema.model.FhirConnectModel;
 import com.medblocks.openfhir.fc.schema.model.Mapping;
 import com.medblocks.openfhir.util.OpenFhirTestUtility;
+import java.io.IOException;
 import java.io.InputStream;
 import org.junit.Assert;
 import org.junit.Test;
-import org.yaml.snakeyaml.Yaml;
 
 public class OpenFhirFhirConnectModelMapperTest {
 
     @Test
-    public void handleManualMappingsTest() {
-        final Yaml yaml = OpenFhirTestUtility.getYaml();
+    public void handleManualMappingsTest() throws IOException {
+        final ObjectMapper yaml = OpenFhirTestUtility.getYaml();
         final InputStream inputStream = this.getClass()
                 .getResourceAsStream("/com/medblocks/openfhir/fc/manualMappingsTest.yml");
-        final FhirConnectModel fhirConnectModel = yaml.loadAs(inputStream, FhirConnectModel.class);
+        final FhirConnectModel fhirConnectModel = yaml.readValue(inputStream, FhirConnectModel.class);
         final OpenFhirFhirConnectModelMapper handled = new OpenFhirFhirConnectModelMapper().fromFhirConnectModelMapper(
                 fhirConnectModel);
 

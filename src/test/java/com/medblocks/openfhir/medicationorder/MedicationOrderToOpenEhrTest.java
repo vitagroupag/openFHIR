@@ -112,7 +112,10 @@ public class MedicationOrderToOpenEhrTest extends GenericTest {
                 StringUtils.isEmpty(helper.getFhirPath()) ? fhirPath : fhirPath.replace(helper.getFhirPath() + ".", "");
         if (helper.getFhirToOpenEhrHelpers() != null) {
             for (FhirToOpenEhrHelper innerHelper : helper.getFhirToOpenEhrHelpers()) {
-                return findOpenEhrPathByFhirPath(innerHelper, toCheckFurther);
+                final String found = findOpenEhrPathByFhirPath(innerHelper, toCheckFurther);
+                if(found != null) {
+                    return found;
+                }
             }
         }
         return null;

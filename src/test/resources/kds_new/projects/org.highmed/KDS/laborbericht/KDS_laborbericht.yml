@@ -63,7 +63,7 @@ mappings:
     with:
       fhir: "$resource.status"
       openehr: "$composition/context/other_context[at0001]/items[at0005]"
-      type: "CODING"
+      
 
 #TODO does not work
 #  - name: "eventTime" #TODO @deprecated needs to go once mapping is updated
@@ -99,7 +99,7 @@ mappings:
           with:
             fhir: "value"
             openehr: "$composition/context/other_context[at0001]/items[at0002]"
-            type: "STRING"
+            
 
 
 

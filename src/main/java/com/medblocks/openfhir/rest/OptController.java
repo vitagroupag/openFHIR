@@ -41,7 +41,7 @@ public class OptController {
      * @return OptEntity without the actual context of the template, just the metadata and the assigned database ID
      */
     @PostMapping(value = "/opt", produces = {
-            "application/json"})
+            "application/json"}, consumes = {"application/xml", "text/xml", "text/plain"})
     @Operation(
             summary = "Create a new Operational Template",
             description = "Creates a new Operational Template and returns a 200 OK if operation completely successfully.",
@@ -60,7 +60,7 @@ public class OptController {
     }
 
 
-    @PutMapping(value = "/opt/{id}", produces = "application/json")
+    @PutMapping(value = "/opt/{id}", produces = "application/json", consumes = {"application/xml", "text/xml", "text/plain"})
     @Operation(
             summary = "Updates an existing Operational Template",
             description = "Updates an existing Operational Template and returns a 200 OK if operation completely successfully.",
