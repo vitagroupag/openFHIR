@@ -53,7 +53,6 @@
         <archie.version>3.11.0</archie.version>
         <hapi-fhir.version>7.2.1</hapi-fhir.version>
         <jjwt.version>0.12.6</jjwt.version>
-        <snakeyaml.version>2.2</snakeyaml.version>
         <ucum.version>1.0.8</ucum.version>
         <ehrbase.version>2.14.0</ehrbase.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
@@ -108,13 +107,6 @@
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt</artifactId>
                 <version>${jjwt.version}</version>
-            </dependency>
-
-            <!-- SnakeYAML -->
-            <dependency>
-                <groupId>org.yaml</groupId>
-                <artifactId>snakeyaml</artifactId>
-                <version>${snakeyaml.version}</version>
             </dependency>
 
             <!-- JUnit -->

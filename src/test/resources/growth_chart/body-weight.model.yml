@@ -23,7 +23,7 @@ mappings:
     with:
       fhir: "$resource.value"
       openehr: "$archetype/data[at0002]/events[at0003]/data[at0001]/items[at0004]"
-      type: "QUANTITY"
+      
     fhirCondition:
       targetRoot: "$resource"
       targetAttribute: "code.coding.code"
@@ -34,18 +34,18 @@ mappings:
     with:
       fhir: "$resource.effective"
       openehr: "$archetype/data[at0002]/events[at0003]/time"
-      type: "DATETIME"
+      
   - name: "comment"
     with:
       fhir: "$resource.note.text"
       openehr: "$archetype/data[at0002]/events[at0003]/data[at0001]/items[at0024]"
-      type: "STRING"
+      
 
   - name: "stateOfDress"
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0002]/events[at0003]/state[at0008]/items[at0009]"
-      type: "CODEABLECONCEPT"
+      
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"

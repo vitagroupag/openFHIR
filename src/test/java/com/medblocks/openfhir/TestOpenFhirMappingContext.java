@@ -1,5 +1,6 @@
 package com.medblocks.openfhir;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medblocks.openfhir.fc.OpenFhirFhirConnectModelMapper;
 import com.medblocks.openfhir.fc.schema.Metadata;
 import com.medblocks.openfhir.fc.schema.context.Context;
@@ -23,7 +24,6 @@ import org.openehr.schemas.v1.TemplateDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
-import org.yaml.snakeyaml.Yaml;
 
 @Component
 @RequestScope
@@ -175,9 +175,9 @@ public class TestOpenFhirMappingContext extends OpenFhirMappingContext {
         try {
             final FileInputStream modelInputStream = FileUtils.openInputStream(file);
 
-            final Yaml yaml = OpenFhirTestUtility.getYaml();
+            final ObjectMapper yaml = OpenFhirTestUtility.getYaml();
 
-            return yaml.loadAs(modelInputStream, FhirConnectModel.class);
+            return yaml.readValue(modelInputStream, FhirConnectModel.class);
         } catch (Exception e) {
             log.warn("Couldn't parse file: {}", file.getName(), e);
             return null;

@@ -1,5 +1,6 @@
 package com.medblocks.openfhir.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -10,13 +11,12 @@ import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.stereotype.Service;
-import org.yaml.snakeyaml.Yaml;
 
 @Service
 public class YamlHttpMessageConverter extends AbstractHttpMessageConverter<Object> {
 
     @Autowired
-    private Yaml yamlParser;
+    private ObjectMapper yamlParser;
 
     public YamlHttpMessageConverter() {
         super(MediaType.valueOf("application/x-yaml"),
@@ -33,11 +33,11 @@ public class YamlHttpMessageConverter extends AbstractHttpMessageConverter<Objec
     protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage) throws IOException {
         final InputStream body = inputMessage.getBody();
         final String string = IOUtils.toString(body, StandardCharsets.UTF_8);
-        return yamlParser.loadAs(string, clazz);
+        return yamlParser.readValue(string, clazz);
     }
 
     @Override
     protected void writeInternal(Object o, HttpOutputMessage outputMessage) throws IOException {
-        outputMessage.getBody().write(yamlParser.dump(o).getBytes(StandardCharsets.UTF_8));
+        outputMessage.getBody().write(yamlParser.writeValueAsBytes(o));
     }
 }

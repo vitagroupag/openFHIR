@@ -29,21 +29,18 @@ preprocessor:
 mappings:
   - name: "nationalEarlyWarningScoreNEWS2"
     with:
-      fhir: "$resource.value"
+      fhir: "$resource.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0028]"
-      type: "QUANTITY"
 
   - name: "time"
     with:
       fhir: "$resource.effective"
       openehr: "$archetype/data[at0001]/events[at0002]/time"
-      type: "DATETIME"
 
   - name: "rrs"
     with:
-      fhir: "$resource.component.value"
+      fhir: "$resource.component.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0006]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -52,9 +49,8 @@ mappings:
 
   - name: "spos1"
     with:
-      fhir: "$resource.component.value"
+      fhir: "$resource.component.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0029]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -65,7 +61,6 @@ mappings:
   #    with:
   #      fhir: "$resource.component.value"
   #      openehr: "$archetype.national_early_warning_score_2_news2.spo_scale_2"
-  #      type: "QUANTITY"
   #    condition:
   #      targetRoot: "$resource"
   #      targetAttribute: "component.code.coding.code"
@@ -74,9 +69,8 @@ mappings:
 
   - name: "airOrOxygenScore"
     with:
-      fhir: "$resource.component.value"
+      fhir: "$resource.component.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0034]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -85,9 +79,8 @@ mappings:
 
   - name: "systolic"
     with:
-      fhir: "$resource.component.value"
+      fhir: "$resource.component.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0004]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -96,9 +89,8 @@ mappings:
 
   - name: "consciousness"
     with:
-      fhir: "$resource.component.value"
+      fhir: "$resource.component.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0008]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -107,9 +99,8 @@ mappings:
 
   - name: "temperature"
     with:
-      fhir: "$resource.component.value"
+      fhir: "$resource.component.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0007]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -118,9 +109,8 @@ mappings:
 
   - name: "pulse"
     with:
-      fhir: "$resource.component.value"
+      fhir: "$resource.component.value.as(Quantity)"
       openehr: "$archetype/data[at0001]/events[at0002]/data[at0003]/items[at0005]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"

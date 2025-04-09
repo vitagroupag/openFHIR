@@ -30,7 +30,7 @@ mappings:
     with:
       fhir: "$resource.deceased.as(Boolean)"
       openehr: "$archetype/data[at0001]/items[at0024]/items[at0025]"
-      type: "BOOL"
+      
 
   - name: "deathDateTime"
     with:

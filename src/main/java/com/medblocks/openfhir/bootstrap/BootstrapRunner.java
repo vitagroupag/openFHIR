@@ -1,5 +1,6 @@
 package com.medblocks.openfhir.bootstrap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.medblocks.openfhir.db.FhirConnectService;
 import com.medblocks.openfhir.db.OptService;
 import com.medblocks.openfhir.db.entity.BootstrapEntity;
@@ -40,13 +41,13 @@ public class BootstrapRunner implements ApplicationRunner {
     private final BootstrapRepository bootstrapRepository;
     private final FhirConnectService service;
     private final OptService optService;
-    private final Yaml yamlParser;
+    private final ObjectMapper yamlParser;
 
     @Autowired
     public BootstrapRunner(final BootstrapRepository bootstrapRepository,
                            final FhirConnectService service,
                            final OptService optService,
-                           final Yaml yamlParser) {
+                           final ObjectMapper yamlParser) {
         this.bootstrapRepository = bootstrapRepository;
         this.service = service;
         this.optService = optService;
@@ -114,10 +115,10 @@ public class BootstrapRunner implements ApplicationRunner {
 
             if (fileType == FileType.MODEL) {
                 log.info("Creating model file {} from bootstrap.", fileName);
-                service.upsertModelMapper(yamlParser.loadAs(fileContents, FhirConnectModel.class), null, "bootstrap-req");
+                service.upsertModelMapper(yamlParser.readValue(fileContents, FhirConnectModel.class), null, "bootstrap-req");
             } else if (fileType == FileType.CONTEXT) {
                 log.info("Creating context file {} from bootstrap.", fileName);
-                service.upsertContextMapper(yamlParser.loadAs(fileContents, FhirConnectContext.class), null, "bootstrap-req");
+                service.upsertContextMapper(yamlParser.readValue(fileContents, FhirConnectContext.class), null, "bootstrap-req");
             } else if (fileType == FileType.OPT) {
                 log.info("Creating OPT file {} from bootstrap.", fileName);
                 optService.upsert(fileContents, null, "bootstrap-req");

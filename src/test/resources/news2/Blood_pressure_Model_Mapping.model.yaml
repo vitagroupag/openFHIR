@@ -36,7 +36,6 @@ mappings:
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0001]/events[at0006]/data[at0003]/items[at0004]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -47,7 +46,6 @@ mappings:
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0001]/events[at0006]/data[at0003]/items[at0005]"
-      type: "QUANTITY"
     fhirCondition:
       targetRoot: "$resource.component"
       targetAttribute: "code.coding.code"
@@ -58,10 +56,9 @@ mappings:
     with:
       fhir: "$resource.bodySite"
       openehr: "$archetype/protocol[at0011]/items[at0014]"
-      type: "CODEABLECONCEPT"
+      
 
   - name: "clinicalInterpretation"
     with:
       fhir: "$resource.component.interpretation.text"
       openehr: "$archetype/data[at0001]/events[at0006]/data[at0003]/items[at1059]"
-      type: "STRING"

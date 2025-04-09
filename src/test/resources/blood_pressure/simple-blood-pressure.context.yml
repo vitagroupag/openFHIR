@@ -13,5 +13,5 @@ context:
   template:
     id: "Blood Pressure"
   archetypes:
-    - "openEHR-EHR-OBSERVATION.blood_pressure.v2"
-  start: "openEHR-EHR-OBSERVATION.blood_pressure.v2"
+    - "OBSERVATION.blood_pressure.v2"
+  start: "OBSERVATION.blood_pressure.v2"

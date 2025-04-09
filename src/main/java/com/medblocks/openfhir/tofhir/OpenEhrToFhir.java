@@ -1,9 +1,18 @@
 package com.medblocks.openfhir.tofhir;
 
+import static com.medblocks.openfhir.fc.FhirConnectConst.CODE_PHRASE;
 import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_EMPTY;
 import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_NOT_EMPTY;
 import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_NOT_OF;
 import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_TYPE;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_BOOL;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_COUNT;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_DATE;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_DATE_TIME;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_MULTIMEDIA;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_PROPORTION;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_QUANTITY;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_TIME;
 import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_ARCHETYPE_FC;
 import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_COMPOSITION_FC;
 import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_TYPE_MEDIA;
@@ -67,6 +76,7 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.DateType;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
@@ -698,7 +708,6 @@ public class OpenEhrToFhir {
             hardcodedReturn.setPath(openFhirStringUtils.getFhirPathWithConditions(targetRoot, condition, targetResource,
                                                                                   parentFhirEhr)
                                             .replace(targetRoot, hardcodedReturn.getPath()));
-            System.out.println();
         } else {
             setCriteriaOnPath(hardcodedReturn.getInner(), condition, targetResource, parentFhirEhr);
         }
@@ -969,7 +978,7 @@ public class OpenEhrToFhir {
                                                                                                         ? firstFlatPath
                                                                                                         : parentFollowedByOpenEhrWithOutAqlPath);
 
-            final String rmType = getRmType(openehr, mapping, webTemplate);
+            final String rmType = getRmType(openehrAqlPath, mapping, webTemplate);
 
             // get fhir path with conditions included in the fhir path itself
             final String fhirPath = openFhirStringUtils.amendFhirPath(with.getFhir(),
@@ -987,11 +996,6 @@ public class OpenEhrToFhir {
                                        webTemplate,
                                        flatJsonObject, slotContext, openEhrForReferenceMappings, possibleRecursion);
             } else {
-                final String OPENEHR_CONTENT_SUFFIX = "content/content";
-                if (openehr.endsWith(OPENEHR_CONTENT_SUFFIX) && OPENEHR_TYPE_MEDIA.equals(rmType)) {
-                    openehr = openehr.substring(0, openehr.length()
-                            - 8); // remove the last /content part (8 chars), because the path is content/content which is not ok for openEhr—>fhir
-                }
                 boolean manuallyAddingOccurrence = openehr.contains(RECURRING_SYNTAX);
                 if (manuallyAddingOccurrence) {
                     // for cases when you're manually adding recurring syntax to an openEHR path for whatever reason
@@ -1214,7 +1218,7 @@ public class OpenEhrToFhir {
                 openFhirMapperUtils.prepareFollowedByMappings(followedByMappings,
                                                               fhirPath,
                                                               definedMappingWithOpenEhr,
-                                                              firstFlatPath,
+                                                              slotContext,
                                                               mapping);
 
                 prepareOpenEhrToFhirHelpers(theMapper, resourceType, firstFlatPath, followedByMappings, helpers,
@@ -1562,13 +1566,21 @@ public class OpenEhrToFhir {
         log.debug("Processing data point from openEhr {}, value : {}, fhirPath: {}", data.getFullOpenEhrPath(),
                   data.getData().getClass(), fhirPathWithConditions);
 
+        // set openEHRType if it's null based on implicit typing
+        if (helper.getOpenEhrType() == null) {
+            helper.setOpenEhrType(data.getData().getClass().getSimpleName());
+        }
+
         // based on the fhir path and openehr path (and conditions), we try to find an existing intermediary item
         // if none is found, we create one and add it to the cache for later mappings that may relate to this same
         // element we've created just now
         final FindingOuterMost findingOuterMost = getOrInstantiateIntermediateItem(instantiatedIntermediateElements,
                                                                                    instance,
                                                                                    fhirPathWithConditions,
-                                                                                   helper.getOpenEhrType(),
+                                                                                   helper.getOpenEhrType() == null
+                                                                                           ? data.getData().getClass()
+                                                                                           .getSimpleName()
+                                                                                           : helper.getOpenEhrType(),
                                                                                    helper.getTargetResource(),
                                                                                    fullOpenEhrPath,
                                                                                    helper.isFollowedBy(),
@@ -1709,20 +1721,32 @@ public class OpenEhrToFhir {
         final String code = fetchValue(joinedValues, "code");
         final String terminology = fetchValue(joinedValues, "terminology");
         final String id = fetchValue(joinedValues, "id");
+        final String ordinal = fetchValue(joinedValues, "ordinal");
 
         return switch (targetType) {
-            case "PROPORTION" -> handleProportion(joinedValues, valueHolder, lastIndex, path);
-            case "QUANTITY" -> handleQuantity(joinedValues, valueHolder, lastIndex, path, value, code);
-            case "DATETIME" -> handleDateTime(valueHolder, lastIndex, path);
-            case "TIME" -> handleTime(valueHolder, lastIndex, path);
-            case "BOOL" -> handleBoolean(valueHolder, lastIndex, path);
-            case "DATE" -> handleDate(valueHolder, lastIndex, path);
-            case "CODEABLECONCEPT" -> handleCodeableConcept(valueHolder, lastIndex, path, value, terminology, code);
-            case "CODING" -> handleCoding(valueHolder, lastIndex, path, terminology, code, value);
-            case "MEDIA" -> handleMedia(valueHolder, lastIndex, path);
-            case "IDENTIFIER" -> handleIdentifier(valueHolder, lastIndex, path, id);
+            case DV_PROPORTION,  "PROPORTION" -> handleProportion(joinedValues, valueHolder, lastIndex, path);
+            case DV_QUANTITY, "QUANTITY" -> handleQuantity(joinedValues, valueHolder, lastIndex, path, value, code);
+            case DV_COUNT -> handleCount(valueHolder, lastIndex, path);
+            case DV_DATE_TIME, "DATETIME" -> handleDateTime(valueHolder, lastIndex, path);
+            case DV_TIME, "TIME" -> handleTime(valueHolder, lastIndex, path);
+            case DV_BOOL, "BOOL" -> handleBoolean(valueHolder, lastIndex, path);
+            case DV_DATE, "DATE" -> handleDate(valueHolder, lastIndex, path);
+            case FhirConnectConst.DV_CODED_TEXT, FhirConnectConst.DV_ORDINAL, "CODEABLECONCEPT" -> handleCodeableConcept(valueHolder, lastIndex, path, value, terminology, code, ordinal);
+            case CODE_PHRASE, "CODING" -> handleCoding(valueHolder, lastIndex, path, terminology, code, value);
+            case DV_MULTIMEDIA, "MEDIA" -> handleMedia(valueHolder, lastIndex, path);
+            case FhirConnectConst.DV_TEXT, "STRING", "TEXT" -> handleString(valueHolder, lastIndex, path, canBeNull);
+            case FhirConnectConst.DV_IDENTIFIER, "IDENTIFIER" -> handleIdentifier(valueHolder, lastIndex, path, id);
             default -> handleString(valueHolder, lastIndex, path, canBeNull);
         };
+    }
+
+    private List<String> getAllValues(final List<String> paths, final JsonObject valueHolder) {
+        if (paths == null || valueHolder == null) {
+            return null;
+        }
+        return paths.stream()
+                .map(path -> getFromValueHolder(valueHolder, path))
+                .collect(Collectors.toList());
     }
 
     private String fetchValue(final List<String> joinedValues, final String suffix) {
@@ -1756,6 +1780,12 @@ public class OpenEhrToFhir {
         }
 
         return new OpenEhrToFhirHelper.DataWithIndex(proportionQuantity, lastIndex, path);
+    }
+
+    private OpenEhrToFhirHelper.DataWithIndex handleCount(final JsonObject valueHolder,
+                                                          final Integer lastIndex,
+                                                          final String path) {
+        return new OpenEhrToFhirHelper.DataWithIndex(new IntegerType(getFromValueHolder(valueHolder, path)), lastIndex, path);
     }
 
     private OpenEhrToFhirHelper.DataWithIndex handleQuantity(final List<String> joinedValues,
@@ -1852,13 +1882,15 @@ public class OpenEhrToFhir {
                                                                     final String path,
                                                                     final String value,
                                                                     final String terminology,
-                                                                    final String code) {
+                                                                    final String code,
+                                                                    final String ordinal) {
         final CodeableConcept data = new CodeableConcept();
 
         // Try to get values from the path first, then fall back to the pre-fetched paths
         String textValue = getFromValueHolder(valueHolder, path + "|value");
         String codeValue = getFromValueHolder(valueHolder, path + "|code");
         String systemValue = getFromValueHolder(valueHolder, path + "|terminology");
+        String ordinalValue = getFromValueHolder(valueHolder, path + "|ordinal");
 
         // Fall back to pre-fetched paths if needed
         if (textValue == null && value != null) {
@@ -1873,11 +1905,19 @@ public class OpenEhrToFhir {
             systemValue = getFromValueHolder(valueHolder, terminology);
         }
 
+        if (ordinalValue == null && ordinal != null) {
+            ordinalValue = getFromValueHolder(valueHolder, ordinal);
+        }
+
         data.setText(textValue);
 
         // Add the primary coding
         if (codeValue != null || systemValue != null) {
             data.addCoding(new Coding(systemValue, codeValue, textValue));
+        }
+
+        if(ordinalValue != null) {
+            data.setText(ordinalValue);
         }
 
         // Process additional mappings
@@ -1972,7 +2012,7 @@ public class OpenEhrToFhir {
                                                                final String path,
                                                                final String id) {
         final Identifier identifier = new Identifier();
-        identifier.setValue(getFromValueHolder(valueHolder, StringUtils.isEmpty(id) ? (path + "|id") : id));
+        identifier.setValue(getFromValueHolder(valueHolder, StringUtils.isEmpty(id) ? (path + "/identifier_value|id") : id));
         return new OpenEhrToFhirHelper.DataWithIndex(identifier, lastIndex, path);
     }
 

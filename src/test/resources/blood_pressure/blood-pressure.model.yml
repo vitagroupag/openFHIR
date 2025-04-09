@@ -7,7 +7,7 @@
 grammar: FHIRConnect/v0.0.1
 type: model
 metadata:
-  name:  openEHR-EHR-OBSERVATION.blood_pressure.v2
+  name:  OBSERVATION.blood_pressure.v2
   version: 0.0.1a # version of this particular mapping
 spec: # schema specific to the FHIRConnect v0.0.1 engine
   system: FHIR
@@ -19,14 +19,6 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
 
 # Actual mapping points:
 mappings:
-  # Each mapping has a unique (self documenting) name.
-  - name: "patient"
-    # A simple mapping, which maps one attribute to another.
-    with:
-      # Access the FHIR resource, either in input or output direction.
-      fhir: "$resource.subject.reference"
-      # Some context variable are necessary to be accessible from the mapping.
-      openehr: "$archetype.$ehr"
 
   # Another mapping which maps on a met condition. This condition is used to identify
   # the correct "component" in the FHIR resource (array).
@@ -34,7 +26,7 @@ mappings:
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0001]/events[at0006]/data[at0003]/items[at0004]"
-      type: "QUANTITY"
+      
     fhirCondition:
       # One of the codings has to be the matching LOINC or SNOMED code.
       # incl. implicit handling of arrays, as ".coding" is a set of codings.
@@ -52,48 +44,55 @@ mappings:
     with:
       fhir: "$resource.component.value"
       openehr: "$archetype/data[at0001]/events[at0006]/data[at0003]/items[at0005]"
-      type: "QUANTITY"
+      
     fhirCondition:
       targetRoot: "$resource.component"                       # Scope of object for 'condition'
       targetAttribute: "code.coding.code" # Actual attribute to check for 'condition'
       operator: "one of"
       criteria: "[$loinc.8462-4]"
 
-  - name: "clinical interpretation"
+  - name: "clinicalInterpretation"
     with:
       fhir: "$resource.component.interpretation.text"
       openehr: "$archetype/data[at0001]/events[at0006]/data[at0003]/items[at1059]"
-      type: "STRING"
+
 
   - name: "description"
     with:
       fhir: "$resource.code.text"
       openehr: "$archetype/data[at0001]/events[at0006]/data[at0003]/items[at0033]"
-      type: "STRING"
 
-  - name: "position hardcoded to openehr"
+  - name: "position"
     with:
-      openehr: "$archetype/data[at0001]/events[at1042]/state[at0007]/items[at0008]|code"
-      value: "at1000"
-      type: "STRING"
+      openehr: "$archetype/data[at0001]/events[at1042]/state[at0007]/items[at0008]"
+    manual:
+      - name: "position"
+        openehr:
+          - path: "terminology_id"
+            value: "openehr"
+          - path: "value"
+            value: "at1000"
+          - path: "defining_code"
+            value: "at1000"
 
-  - name: "confounding_factors hardcoded to openehr"
+
+  - name: "confoundingFactors"
     with:
       openehr: "$archetype/data[at0001]/events[at1042]/state[at0007]/items[at1052]"
       value: "confounding factor"
-      type: "STRING"
 
-  - name: "performer hardcoded in fhir"
+
+  - name: "performerHardcodedInFhir"
     with:
       fhir: "$resource.performer.as(Reference).display"
       value: "John Doe"
-      type: "STRING"
+      
 
   - name: "location"
     with:
       fhir: "$resource.bodySite"
       openehr: "$archetype/protocol[at0011]/items[at0014]"
-      type: "CODEABLECONCEPT"
+      
     fhirCondition:
       targetRoot: "$resource.bodySite"
       targetAttribute: "text"

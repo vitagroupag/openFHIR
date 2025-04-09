@@ -17,7 +17,7 @@ mappings:
     with:
       fhir: "$resource.recordedDate"
       openehr: "$composition/context/start_time"
-      type: "DATETIME"
+      
 
 #  - name: "participations"
 #    with:
@@ -82,7 +82,7 @@ mappings:
     with:
       fhir: "$resource.code"
       openehr: "$archetype/data[at0001]/items[at0002]"
-      type: "CODEABLECONCEPT"
+      
 
   - name: "category"
     with:

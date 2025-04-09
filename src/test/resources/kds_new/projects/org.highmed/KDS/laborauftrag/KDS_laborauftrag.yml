@@ -59,7 +59,7 @@ mappings:
                 with:
                   fhir: "identifier"
                   openehr: "items[at0001]"
-                  type: "IDENTIFIER"
+                  
 
 
 

@@ -3,6 +3,7 @@ package com.medblocks.openfhir.kds;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.fhirpath.IFhirPathEvaluationContext;
 import ca.uhn.fhir.parser.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -182,9 +183,13 @@ public abstract class KdsBidirectionalTest {
     }
 
     protected FhirConnectContext getContext(final String path) {
-        final Yaml yaml = OpenFhirTestUtility.getYaml();
+        final ObjectMapper yaml = OpenFhirTestUtility.getYaml();
         final InputStream inputStream = this.getClass().getResourceAsStream(path);
-        return yaml.loadAs(inputStream, FhirConnectContext.class);
+        try {
+            return yaml.readValue(inputStream, FhirConnectContext.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected OPERATIONALTEMPLATE getOperationalTemplate() {

@@ -11,17 +11,9 @@ spec: # schema specific to the FHIRConnect v0.0.1 engine
   fhirConfig:
     structureDefinition: http://hl7.org/fhir/StructureDefinition/Dosage
 
-
 mappings:
-  - name: "dosage"
+  - name: "doseQuantityValue"
     with:
-      fhir: "$fhirRoot"
-      openehr: "$archetype"
-      type: "DOSAGE"
-    followedBy:
-      mappings:
-        - name: "doseQuantityValue"
-          with:
-            fhir: "doseAndRate.dose"
-            openehr: "items[at0144]"
-            type: "QUANTITY"
+      fhir: "$fhirRoot.doseAndRate.dose"
+      openehr: "$archetype/items[at0144]"
+      

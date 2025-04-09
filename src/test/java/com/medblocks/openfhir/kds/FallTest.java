@@ -155,7 +155,7 @@ public class FallTest extends KdsBidirectionalTest {
         Assert.assertEquals("local_terms",
                             jsonObject.get("kds_fall_einfach/context/falltyp|terminology").getAsString());
         Assert.assertEquals("AMB", jsonObject.get("kds_fall_einfach/context/fallklasse|code").getAsString());
-        Assert.assertEquals("AMB", jsonObject.get("kds_fall_einfach/context/fallklasse|value").getAsString());
+        Assert.assertEquals("ambulatory", jsonObject.get("kds_fall_einfach/context/fallklasse|value").getAsString());
         Assert.assertEquals("http://terminology.hl7.org/CodeSystem/v3-ActCode",
                             jsonObject.get("kds_fall_einfach/context/fallklasse|terminology").getAsString());
         Assert.assertEquals("finished", jsonObject.get("kds_fall_einfach/context/fallart|code").getAsString());
@@ -167,7 +167,7 @@ public class FallTest extends KdsBidirectionalTest {
                 "kds_fall_einfach/institutionsaufenthalt/überweiser/identifier:0/identifier_value|id").getAsString());
         Assert.assertEquals("01", jsonObject.get(
                 "kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_ersteundzweitestelle|code").getAsString());
-        Assert.assertEquals("01", jsonObject.get(
+        Assert.assertEquals("Krankenhausbehandlung, vollstationär", jsonObject.get(
                 "kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_ersteundzweitestelle|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dkgev/AufnahmegrundErsteUndZweiteStelle", jsonObject.get(
                         "kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_ersteundzweitestelle|terminology")
@@ -175,40 +175,40 @@ public class FallTest extends KdsBidirectionalTest {
         Assert.assertEquals("0",
                             jsonObject.get("kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_dritte_stelle|code")
                                     .getAsString());
-        Assert.assertEquals("0", jsonObject.get(
+        Assert.assertEquals("Anderes", jsonObject.get(
                 "kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_dritte_stelle|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dkgev/AufnahmegrundDritteStelle", jsonObject.get(
                 "kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_dritte_stelle|terminology").getAsString());
         Assert.assertEquals("1",
                             jsonObject.get("kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_vierte_stelle|code")
                                     .getAsString());
-        Assert.assertEquals("1", jsonObject.get(
+        Assert.assertEquals("Normalfall", jsonObject.get(
                 "kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_vierte_stelle|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dkgev/AufnahmegrundVierteStelle", jsonObject.get(
                 "kds_fall_einfach/institutionsaufenthalt/aufnahmegrund_-_vierte_stelle|terminology").getAsString());
         Assert.assertEquals("E", jsonObject.get("kds_fall_einfach/institutionsaufenthalt/aufnahmekategorie|code")
                 .getAsString());
-        Assert.assertEquals("E", jsonObject.get("kds_fall_einfach/institutionsaufenthalt/aufnahmekategorie|value")
+        Assert.assertEquals("Einweisung durch einen Arzt", jsonObject.get("kds_fall_einfach/institutionsaufenthalt/aufnahmekategorie|value")
                 .getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dgkev/Aufnahmeanlass",
                             jsonObject.get("kds_fall_einfach/institutionsaufenthalt/aufnahmekategorie|terminology")
                                     .getAsString());
         Assert.assertEquals("01",
                             jsonObject.get("kds_fall_einfach/institutionsaufenthalt/outcome:0|code").getAsString());
-        Assert.assertEquals("01",
+        Assert.assertEquals("Reguläre Entlassung",
                             jsonObject.get("kds_fall_einfach/institutionsaufenthalt/outcome:0|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/entlassungsgrund",
                             jsonObject.get("kds_fall_einfach/institutionsaufenthalt/outcome:0|terminology")
                                     .getAsString());
         Assert.assertEquals("referral-diagnosis",
                             jsonObject.get("kds_fall_einfach/problem_diagnose/diagnosetyp|code").getAsString());
-        Assert.assertEquals("referral-diagnosis",
+        Assert.assertEquals("Einweisungs-/Überweisungsdiagnos",
                             jsonObject.get("kds_fall_einfach/problem_diagnose/diagnosetyp|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dki-diagnosetyp",
                             jsonObject.get("kds_fall_einfach/problem_diagnose/diagnosetyp|terminology").getAsString());
         Assert.assertEquals("surgery-diagnosis",
                             jsonObject.get("kds_fall_einfach/problem_diagnose/diagnosesubtyp|code").getAsString());
-        Assert.assertEquals("surgery-diagnosis",
+        Assert.assertEquals("Operationsdiagnose",
                             jsonObject.get("kds_fall_einfach/problem_diagnose/diagnosesubtyp|value").getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/dki-diagnosesubtyp",
                             jsonObject.get("kds_fall_einfach/problem_diagnose/diagnosesubtyp|terminology")
