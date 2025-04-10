@@ -22,14 +22,14 @@ mappings:
   - name: "author"
     with:
       fhir: "$resource.patient.display"
-      openehr: "$composition/composer|name"
-      type: "TEXT"
+      openehr: "$composition/composer"
+      
 
   - name: "typeOfDirective"
     with:
       fhir: "$resource.category.coding"
       openehr: "$archetype/data[at0001]/items[at0005]"
-      type: "CODING"
+      
     fhirCondition:
       targetRoot: "$resource.category.coding"
       targetAttribute: "system"
@@ -40,13 +40,13 @@ mappings:
     with:
       fhir: "$resource.status"
       openehr: "$archetype/data[at0001]/items[at0004]"
-      type: "TEXT"
+      
 
   - name: "comment"
     with:
       fhir: "$resource.extension"
       openehr: "$archetype/data[at0001]/items[at0038]"
-      type: "TEXT"
+      
     fhirCondition:
       targetRoot: "$resource.extension"
       targetAttribute: "url"
@@ -59,16 +59,3 @@ mappings:
       openehr: "$archetype/protocol[at0010]/items[openEHR-EHR-CLUSTER.media_file.v1]"
       type: "NONE"
     slotArchetype: "openEHR-EHR-CLUSTER.media_file.v1"
-    followedBy:
-      mappings:
-        - name: "media title"
-          with:
-            fhir: "title"
-            openehr: "$archetype/protocol[at0010]/items[openEHR-EHR-CLUSTER.media_file.v1]/items[at0002]"
-            type: "TEXT"
-
-#  - name: "media name"
-#    with:
-#      fhir: "$resource.source.as(Attachment).title"
-#      openehr: "$archetype.advance_care_directive.media_file.content_name"
-#      type: "TEXT"

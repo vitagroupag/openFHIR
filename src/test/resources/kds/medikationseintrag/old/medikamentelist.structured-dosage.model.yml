@@ -11,26 +11,26 @@ mappings:
     with:
       fhir: "$fhirRoot.text"
       openehr: "$openEhrArchetype.dosierung_freitext"
-      type: "STRING"
+      
 
   - name: "sequence"
     with:
       fhir: "$fhirRoot.sequence"
       openehr: "$openEhrArchetype.dosierungsreihenfolge"
-      type: "QUANTITY" # should this be something else?
+       # should this be something else?
 
   - name: "dose and rate"
     with:
       fhir: "$fhirRoot.doseAndRate.dose.as(Quantity)"
       openehr: "$openEhrArchetype.dosis.quantity_value"
-      type: "QUANTITY"
+      
 
 
   - name: "as needed"
     with:
       fhir: "$fhirRoot.asNeeded.as(BooleanType)"
       openehr: "$openEhrArchetype.tägliche_dosierung.bei_bedarf"
-      type: "BOOL"
+      
 
   - name: "dosage timing"
     with:

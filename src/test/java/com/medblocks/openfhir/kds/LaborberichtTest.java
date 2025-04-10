@@ -57,7 +57,7 @@ public class LaborberichtTest extends KdsBidirectionalTest {
         Assert.assertEquals("registered", jsonObject.getAsJsonPrimitive("laborbericht/context/status|code").getAsString());
         Assert.assertEquals("Normal blood count",
                             jsonObject.getAsJsonPrimitive("laborbericht/laborbefund/any_event:0/conclusion").getAsString());
-        Assert.assertEquals("2022-02-03T04:05:06Z",
+        Assert.assertEquals("2022-02-03T05:05:06",
                             jsonObject.getAsJsonPrimitive("laborbericht/laborbefund/any_event:0/time").getAsString());
         Assert.assertEquals("SP-987654", jsonObject.getAsJsonPrimitive(
                 "laborbericht/laborbefund/any_event:0/probenmaterial:0/external_identifier/identifier_value|id").getAsString());
@@ -88,7 +88,7 @@ public class LaborberichtTest extends KdsBidirectionalTest {
                 "laborbericht/laborbefund/any_event:0/probenmaterial:0/adequacy_for_testing|code").getAsString());
 //        Assert.assertEquals("at0018", jsonObject.getAsJsonPrimitive(
 //                "laborbericht/laborbefund/any_event:0/pro_laboranalyt:0/ergebnis-status|code").getAsString());
-        Assert.assertEquals("2022-02-03T04:05:06Z", jsonObject.getAsJsonPrimitive(
+        Assert.assertEquals("2022-02-03T05:05:06", jsonObject.getAsJsonPrimitive(
                 "laborbericht/laborbefund/any_event:0/pro_laboranalyt:0/result_status_time").getAsString());
         Assert.assertEquals("7.4", jsonObject.getAsJsonPrimitive(
                 "laborbericht/laborbefund/any_event:0/pro_laboranalyt:0/messwert:0/quantity_value|magnitude").getAsString());

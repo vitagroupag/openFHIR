@@ -3,6 +3,7 @@ package com.medblocks.openfhir;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.fhirpath.IFhirPathEvaluationContext;
 import ca.uhn.fhir.parser.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.medblocks.openfhir.OpenEhrRmWorker;
 import com.medblocks.openfhir.TestOpenFhirMappingContext;
@@ -104,15 +105,14 @@ public abstract class GenericTest {
         }
     }
 
-    protected org.hl7.fhir.r4.model.Bundle getTestBundle(final String path) {
-        final InputStream inputStream = this.getClass().getResourceAsStream(path);
-        return (org.hl7.fhir.r4.model.Bundle) jsonParser.parseResource(inputStream);
-    }
-
     protected FhirConnectContext getContext(final String path) {
-        final Yaml yaml = OpenFhirTestUtility.getYaml();
+        final ObjectMapper yaml = OpenFhirTestUtility.getYaml();
         final InputStream inputStream = this.getClass().getResourceAsStream(path);
-        return yaml.loadAs(inputStream, FhirConnectContext.class);
+        try {
+            return yaml.readValue(inputStream, FhirConnectContext.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected OPERATIONALTEMPLATE getOperationalTemplate() {

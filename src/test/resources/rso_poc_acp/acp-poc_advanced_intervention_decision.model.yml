@@ -22,9 +22,9 @@ mappings:
 
   - name: "treatment"
     with:
-      fhir: "$resource.extension"
+      fhir: "$resource.extension.value"
       openehr: "$archetype/data[at0001]/items[at0014]/items[at0015]"
-      type: "CODEABLECONCEPT"
+      
     fhirCondition:
       targetRoot: "$resource.extension"
       targetAttribute: "url"
@@ -33,9 +33,9 @@ mappings:
 
   - name: "decision"
     with:
-      fhir: "$resource.modifierExtension"
+      fhir: "$resource.modifierExtension.value.as(CodeableConcept)"
       openehr: "$archetype/data[at0001]/items[at0014]/items[at0034]"
-      type: "CODEABLECONCEPT"
+
     fhirCondition:
       targetRoot: "$resource.modifierExtension"
       targetAttribute: "url"
@@ -44,9 +44,9 @@ mappings:
 
   - name: "comment"
     with:
-      fhir: "$resource.extension"
+      fhir: "$resource.extension.value"
       openehr: "$archetype/data[at0001]/items[at0014]/items[at0040]"
-      type: "TEXT"
+      
     fhirCondition:
       targetRoot: "$resource.extension"
       targetAttribute: "url"

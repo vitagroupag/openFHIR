@@ -24,6 +24,7 @@ import org.hl7.fhir.r4.model.Enumeration;
 import org.hl7.fhir.r4.model.Extension;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.InstantType;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.Quantity;
 import org.hl7.fhir.r4.model.Ratio;
@@ -58,7 +59,7 @@ public class OpenEhrPopulator {
     public void setFhirPathValue(String openEhrPath, final Base extractedValue, final String openEhrType,
                                  final JsonObject constructingFlat) {
         if (openEhrType == null) {
-            addValuePerFhirType(extractedValue, openEhrPath, constructingFlat);
+            addValuePerFhirType(extractedValue, openEhrPath, constructingFlat, openEhrType);
             return;
         }
         if (OPENEHR_TYPE_NONE.equals(openEhrType) || OPENEHR_TYPE_CLUSTER.equals(openEhrType)) {
@@ -73,6 +74,12 @@ public class OpenEhrPopulator {
             // still has recurring syntax due to the fact some recurring elements were not aligned or simply couldn't have been
             // in this case just set all to 0th
             openEhrPath = openEhrPath.replace(RECURRING_SYNTAX, ":0");
+        }
+
+        if (openEhrPath.contains("|")) {
+            // can only be a string, ignore the actual type
+            addPrimitive(extractedValue, openEhrPath, constructingFlat);
+            return;
         }
 
         switch (openEhrType) {
@@ -129,7 +136,7 @@ public class OpenEhrPopulator {
                     return;
                 }
             case FhirConnectConst.DV_TEXT:
-                addValuePerFhirType(extractedValue, openEhrPath, constructingFlat);
+                addValuePerFhirType(extractedValue, openEhrPath, constructingFlat, FhirConnectConst.DV_TEXT);
                 return;
             case FhirConnectConst.DV_BOOL:
                 final boolean addedBool = handleDvBool(openEhrPath, extractedValue, constructingFlat);
@@ -148,9 +155,16 @@ public class OpenEhrPopulator {
                     return;
                 }
             default:
-                addValuePerFhirType(extractedValue, openEhrPath, constructingFlat);
+                addValuePerFhirType(extractedValue, openEhrPath, constructingFlat, openEhrType);
 
         }
+    }
+
+    private void addPrimitive(final Base fhirValue, final String openEhrPath,
+                              final JsonObject constructingFlat) {
+        final String primitiveValue = fhirValue.primitiveValue();
+
+        addToConstructingFlat(openEhrPath, primitiveValue, constructingFlat);
     }
 
     private void handleDvMultimedia(final String path, final Base value, final JsonObject flat) {
@@ -178,6 +192,9 @@ public class OpenEhrPopulator {
             return true;
         } else if (value instanceof Ratio ratio) {
             setFhirPathValue(path, ratio.getNumerator(), FhirConnectConst.DV_QUANTITY, flat);
+            return true;
+        } else if (value instanceof StringType stringType) {
+            addToConstructingFlatDouble(path + "|magnitude", Double.valueOf(stringType.getValue()), flat);
             return true;
         } else {
             log.warn("openEhrType is DV_QUANTITY but extracted value is not Quantity and not Ratio; is {}",
@@ -250,6 +267,11 @@ public class OpenEhrPopulator {
         } else if (value instanceof TimeType time) {
             if (time.getValue() != null) {
                 addToConstructingFlat(path, time.getValue(), flat);
+            }
+            return true;
+        } else if (value instanceof InstantType instant) {
+            if (instant.getValue() != null) {
+                addToConstructingFlat(path, openFhirMapperUtils.dateTimeToString(instant.getValue()), flat);
             }
             return true;
         }
@@ -348,6 +370,9 @@ public class OpenEhrPopulator {
         if (value instanceof Identifier identifier) {
             addToConstructingFlat(path + "|id", identifier.getValue(), flat);
             return true;
+        } else if (value instanceof StringType identifier) {
+            addToConstructingFlat(path + "|id", identifier.getValue(), flat);
+            return true;
         } else {
             log.warn("openEhrType is IDENTIFIER but extracted value is not Identifier; is {}", value.getClass());
         }
@@ -421,13 +446,16 @@ public class OpenEhrPopulator {
     }
 
     private void addValuePerFhirType(final Base fhirValue, final String openEhrPath,
-                                     final JsonObject constructingFlat) {
+                                     final JsonObject constructingFlat,
+                                     final String openehrType) {
         if (fhirValue instanceof Quantity extractedQuantity) {
             if (extractedQuantity.getValue() != null) {
                 addToConstructingFlat(openEhrPath, extractedQuantity.getValue().toPlainString(), constructingFlat);
             }
-        } else if (fhirValue instanceof Coding extractedQuantity) {
-            addToConstructingFlat(openEhrPath, extractedQuantity.getCode(), constructingFlat);
+        } else if (fhirValue instanceof Coding extractedCoding) {
+            handleCodePhrase(openEhrPath, extractedCoding, constructingFlat, openehrType);
+        } else if (fhirValue instanceof CodeableConcept codeableConcept) {
+            handleCodePhrase(openEhrPath, codeableConcept.getCodingFirstRep(), constructingFlat, openehrType);
         } else if (fhirValue instanceof DateTimeType extractedQuantity) {
             addToConstructingFlat(openEhrPath, extractedQuantity.getValueAsString(), constructingFlat);
         } else if (fhirValue instanceof Annotation extracted) {
@@ -438,7 +466,7 @@ public class OpenEhrPopulator {
             addToConstructingFlat(openEhrPath, extracted.getNameAsSingleString(), constructingFlat);
         } else if (fhirValue instanceof Extension extracted) {
             if (extracted.getValue().hasPrimitiveValue()) {
-                addValuePerFhirType(extracted.getValue(), openEhrPath, constructingFlat);
+                addValuePerFhirType(extracted.getValue(), openEhrPath, constructingFlat, openehrType);
             }
 //            addToConstructingFlat(openEhrPath, extracted.getValue().hasPrimitiveValue() ? extracted.getValue().primitiveValue() : null, constructingFlat);
         } else if (fhirValue.hasPrimitiveValue()) {

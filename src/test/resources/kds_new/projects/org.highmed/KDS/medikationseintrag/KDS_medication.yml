@@ -2,34 +2,34 @@ grammar: FHIRConnect/v0.9.0
 type: extension
 metadata:
   name:  KDS_medication.v3
-  version: 0.0.1-alpha
-spec:
+  version: 0.0.1-alpha 
+spec: 
   system: FHIR
   version: R4
   extends: CLUSTER.medication.v2
 
 mappings:
 
-  #because in kds template, at0132 is a string
+#because in kds template, at0132 is a string
   - name: "name"
     extension: "overwrite"
     with:
       fhir: "$resource.code.coding.code"
       openehr: "$archetype/items[at0132]"
-      type: "STRING"
+      
     openehrCondition:
       targetRoot: "$archetype"
       targetAttribute: "items[at0132]"
       operator: "type"
       criteria: "DV_TEXT"
 
-  # because medication.v2 has sometime at0132 as text and other times as coded text...i.e. Arzneimittel-Name vs Bestandteil
+# because medication.v2 has sometime at0132 as text and other times as coded text...i.e. Arzneimittel-Name vs Bestandteil
   - name: "nameStructured"
     extension: "add"
     with:
       fhir: "$resource.code"
       openehr: "$archetype/items[at0132]"
-      type: "CODEABLECONCEPT"
+
     openehrCondition:
       targetRoot: "$archetype"
       targetAttribute: "items[at0132]"
@@ -58,7 +58,7 @@ mappings:
                 with:
                   fhir: "value"
                   openehr: "items[at0142]"
-                  type: "CODING"
+                  
               - name: "url"
                 with:
                   fhir: "$fhirRoot"
@@ -67,8 +67,6 @@ mappings:
                     fhir:
                       - path: "url"
                         value: "https://www.medizininformatik-initiative.de/fhir/core/modul-medikation/StructureDefinition/wirkstofftyp"
-
-
 
 #  - name: "wirkstoffrelation"
 #    extension: "append"

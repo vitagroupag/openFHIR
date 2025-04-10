@@ -28,7 +28,7 @@ mappings:
     with:
       fhir: "$resource.value"
       openehr: "$archetype/data[at0001]/events[at0010]/data[at0003]/items[at0004]"
-      type: "QUANTITY"
+      
     fhirCondition:
       targetRoot: "$resource"
       targetAttribute: "code.coding.code"
@@ -39,4 +39,4 @@ mappings:
     with:
       fhir: "$resource.effective"
       openehr: "$archetype/data[at0001]/events[at0010]/time"
-      type: "DATETIME"
+      

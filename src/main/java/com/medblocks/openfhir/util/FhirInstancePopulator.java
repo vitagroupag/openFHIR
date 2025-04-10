@@ -83,7 +83,9 @@ public class FhirInstancePopulator {
     private void handleSpecificTypePopulation(final Object toPopulate, final Base data) {
         if (data instanceof Quantity) {
             populateQuantity(toPopulate, (Quantity) data);
-        } else if (data instanceof DateTimeType) {
+        } else if (data instanceof IntegerType) {
+            populateIntegerType(toPopulate, (IntegerType) data);
+        }else if (data instanceof DateTimeType) {
             populateDateTime(toPopulate, (DateTimeType) data);
         } else if (data instanceof TimeType) {
             populateTimeType(toPopulate, (TimeType) data);
@@ -122,6 +124,14 @@ public class FhirInstancePopulator {
         }
     }
 
+    private void populateIntegerType(Object toPopulate, IntegerType data) {
+        if (toPopulate instanceof IntegerType) {
+            ((IntegerType) toPopulate).setValue(data.getValue());
+        } else if (toPopulate instanceof Quantity) {
+            ((Quantity) toPopulate).setValue(data.getValue());
+        }
+    }
+
     private void populateTimeType(Object toPopulate, TimeType data) {
         if (toPopulate instanceof TimeType) {
             ((TimeType) toPopulate).setValue(data.getValue());
@@ -149,6 +159,15 @@ public class FhirInstancePopulator {
         if (toPopulate instanceof CodeableConcept) {
             data.copyValues((CodeableConcept) toPopulate);
         }
+        if (toPopulate instanceof Coding coding) {
+           data.getCodingFirstRep().copyValues(coding);
+        }  else if (toPopulate instanceof Quantity q) {
+            q.setValue(Long.parseLong(data.getText()));
+            q.setCode(data.getCodingFirstRep().getCode());
+            q.setUnit(data.getCodingFirstRep().getDisplay());
+        }else if (toPopulate instanceof Enumeration<?>) {
+            ((Enumeration<?>) toPopulate).setValueAsString(data.getCodingFirstRep().getCode());
+        }
     }
 
     private void populateCoding(Object toPopulate, Coding data) {
@@ -170,6 +189,10 @@ public class FhirInstancePopulator {
             ((Enumeration<?>) toPopulate).setValueAsString(data.getValueAsString());
         } else if (toPopulate instanceof DateTimeType) {
             ((DateTimeType) toPopulate).setValueAsString(data.getValueAsString());
+        }else if (toPopulate instanceof InstantType) {
+            ((InstantType) toPopulate).setValueAsString(data.getValueAsString());
+        } else if (toPopulate instanceof IntegerType) {
+            ((IntegerType) toPopulate).setValue(Integer.valueOf(data.getValue()));
         }else if (toPopulate instanceof PrimitiveType<?>) {
             ((PrimitiveType<String>) toPopulate).setValue(data.getValue());
         }

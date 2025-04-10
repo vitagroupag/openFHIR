@@ -42,7 +42,7 @@ public class BloodPressureToOpenEhrTest extends GenericTest {
         final JsonObject flat = fhirToOpenEhr.fhirToFlatJsonObject(context, testBloodPressureObservation(),
                                                                    operationaltemplate);
 
-        Assert.assertEquals(11, flat.size());
+        Assert.assertEquals(13, flat.size());
         Assert.assertEquals("456.0",
                             flat.get("blood_pressure/blood_pressure/any_event:0/systolic|magnitude").getAsString());
         Assert.assertEquals("mm[Hg]",
@@ -63,6 +63,10 @@ public class BloodPressureToOpenEhrTest extends GenericTest {
         // assert hardcoded paths
         Assert.assertEquals("at1000",
                             flat.get("blood_pressure/blood_pressure/a24_hour_average/position|code").getAsString());
+        Assert.assertEquals("at1000",
+                            flat.get("blood_pressure/blood_pressure/a24_hour_average/position|value").getAsString());
+        Assert.assertEquals("openehr",
+                            flat.get("blood_pressure/blood_pressure/a24_hour_average/position|terminology").getAsString());
         Assert.assertEquals("confounding factor",
                             flat.get("blood_pressure/blood_pressure/a24_hour_average/confounding_factors")
                                     .getAsString());

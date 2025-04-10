@@ -54,7 +54,7 @@ mappings:
           with:
             fhir: "value.as(DateTimeType)"
             openehr: "$archetype/data[at0001]/items[at0003]"
-            type: "DATETIME"
+
 
         - name: "staticURL"
           with:
@@ -92,7 +92,7 @@ mappings:
   #    with:
   #      fhir: "$fhirRoot"
   #      openehr: "$archetype/data[at0001]/items[at0002]"
-  #      type: "CODING"
+  #      
 
   - name: "icd10ProblemDiagnose"
     extension: "append"
@@ -136,7 +136,7 @@ mappings:
                       with:
                         fhir: "value"
                         openehr: "data[at0001]/items[at0073]"
-                        type: "CODEABLECONCEPT"
+                        
                     - name: "extensionUrl"
                       with:
                         fhir: "$fhirRoot" #since we want to access extension here
@@ -210,20 +210,20 @@ mappings:
           with:
             fhir: "onset.as(Period)"
             openehr: "$archetype"
-            type: "DATETIME"
+            type: NONE
           followedBy:
             mappings:
-              - name: "start"
-                with:
-                  fhir: "$fhirRoot.start"
-                  openehr: "data[at0001]/items[at0077]"
-                  type: "DATETIME"
-
               - name: "lebensphaseCluster"
                 with:
                   fhir: "$fhirRoot"
                   openehr: "data[at0001]/items[openEHR-EHR-CLUSTER.lebensphase.v0]"
                 slotArchetype: "CLUSTER.lebensphase.v0"
+                followedBy:
+                  mappings:
+                    - name: "start"
+                      with:
+                        fhir: "start"
+                        openehr: "$archetype/data[at0001]/items[at0077]"
 
         - name: "dateTime"
           with:

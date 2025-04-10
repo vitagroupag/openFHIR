@@ -123,8 +123,9 @@ public class DiagnoseTest extends KdsBidirectionalTest {
         Assert.assertEquals("http://fhir.de/CodeSystem/bfarm/icd-10-gm", icd10code.getSystem());
 
 //        - name: "codeIcd10Diagnosesicherheit"
-        final CodeableConcept diagnosessicherheit = (CodeableConcept) icd10code.getExtensionByUrl(
-                "http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit").getValue();
+        final CodeableConcept diagnosessicherheit = (CodeableConcept) icd10code.getExtensionsByUrl(
+                "http://fhir.de/StructureDefinition/icd-10-gm-diagnosesicherheit").stream()
+                .map(Extension::getValue).filter(value -> !value.isEmpty()).findAny().orElse(null);
         Assert.assertEquals((second ? "referenced_" : "") + "diagnosesicherheit",
                             diagnosessicherheit.getCodingFirstRep().getCode());
         Assert.assertEquals(

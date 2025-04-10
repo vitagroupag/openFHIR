@@ -19,7 +19,7 @@ mappings:
     with:
       fhir: "$resource.dateTime"
       openehr: "$composition/context/start_time"
-      type: "DATETIME"
+      
 
 # Not supported reference to party identifier
 #  - name: "healthCareFacility"

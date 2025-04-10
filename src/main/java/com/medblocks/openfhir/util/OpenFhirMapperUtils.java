@@ -43,6 +43,9 @@ public class OpenFhirMapperUtils {
         if (fhirConnectType == null) {
             return null;
         }
+        if (fhirConnectType.equals(FhirConnectConst.OPENEHR_TYPE_NONE)) {
+            return null;
+        }
         switch (fhirConnectType) {
             case "QUANTITY":
             case "PROPORTION":
@@ -64,7 +67,7 @@ public class OpenFhirMapperUtils {
             case "STRING":
                 return StringType.class.getSimpleName();
             default:
-                return null;
+                return fhirConnectType;
         }
     }
 
@@ -247,7 +250,6 @@ public class OpenFhirMapperUtils {
                 parentMapping.getTypeConditions().forEach(followedByMapping::addTypeCondition);
             }
 
-
             if (!followedByMapping.getWith().getOpenehr().startsWith(FhirConnectConst.OPENEHR_ARCHETYPE_FC)
                     && !followedByMapping.getWith().getOpenehr().startsWith(FhirConnectConst.OPENEHR_COMPOSITION_FC)) {
 
@@ -261,7 +263,7 @@ public class OpenFhirMapperUtils {
                             .setOpenehr(FhirConnectConst.REFERENCE + openEhrPathMiddle + openEhrWithReference
                                     .replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC + ".", "")
                                     .replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC, ""));
-                } else if(followedByMapping.getWith().getOpenehr().startsWith(FhirConnectConst.OPENEHR_ROOT_FC)) {
+                } else if (followedByMapping.getWith().getOpenehr().startsWith(FhirConnectConst.OPENEHR_ROOT_FC)) {
                     followedByMapping.getWith().setOpenehr(openehr);
                 } else {
                     final String delimeter = followedByMapping.getWith().getOpenehr().startsWith("|") ? "" : "/";
@@ -271,13 +273,18 @@ public class OpenFhirMapperUtils {
                                     .replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC, ""));
                 }
             } else if (followedByMapping.getWith().getOpenehr().equals(FhirConnectConst.OPENEHR_ARCHETYPE_FC)) {
-                if(hardcodedValue != null) {
+                if (hardcodedValue != null) {
                     followedByMapping.getWith().setOpenehr(openehr);
                 } else {
                     followedByMapping.getWith().setOpenehr(slotContext);
                 }
+
             } else if (followedByMapping.getWith().getOpenehr().startsWith(FhirConnectConst.OPENEHR_ROOT_FC)) {
                 followedByMapping.getWith().setOpenehr(openehr);
+            } else if (followedByMapping.getWith().getOpenehr().startsWith(OPENEHR_ARCHETYPE_FC)) {
+                followedByMapping.getWith().setOpenehr(followedByMapping.getWith().getOpenehr()
+                                                               .replace(FhirConnectConst.OPENEHR_ARCHETYPE_FC,
+                                                                        slotContext));
             } else {
                 followedByMapping.getWith().setOpenehr(
                         new OpenFhirStringUtils().prepareOpenEhrSyntax(followedByMapping.getWith().getOpenehr(),

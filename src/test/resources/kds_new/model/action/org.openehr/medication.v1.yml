@@ -40,13 +40,13 @@ mappings:
           with:
             fhir: "start"
             openehr: "start_time"
-            type: "DATETIME"
+            
 
         - name: "contextEnd"
           with:
             fhir: "end"
             openehr: "end_time"
-            type: "DATETIME"
+            
 
 #party_identified to reference unsupported
 #  - name: "composer"
@@ -146,7 +146,7 @@ mappings:
     with:
       fhir: "$resource.note.text"
       openehr: "$archetype/description[at0017]/items[at0024]"
-      type: "STRING"
+      
 
   - name: "dosage"
     with:
@@ -159,19 +159,19 @@ mappings:
           with:
             fhir: "route"
             openehr: "$archetype/description[at0017]/items[at0140]/items[at0147]"
-            type: "CODEABLECONCEPT"
+            
 
         - name: "bodySite"
           with:
             fhir: "site"
             openehr: "$archetype/description[at0017]/items[at0140]/items[at0141]"
-            type: "CODEABLECONCEPT"
+            
 
         - name: "method"
           with:
             fhir: "method"
             openehr: "$archetype/description[at0017]/items[at0140]/items[at0143]"
-            type: "CODEABLECONCEPT"
+            
 
   - name: "medication"
     with:
@@ -191,7 +191,7 @@ mappings:
     with:
       fhir: "$resource.medication.as(CodeableConcept)"
       openehr: "$archetype/description[at0017]/items[openEHR-EHR-CLUSTER.medication.v2]/items[at0132]"
-      type: "CODEABLECONCEPT"
+      
     openehrCondition:
       targetRoot: "$archetype/description[at0017]/items[openEHR-EHR-CLUSTER.medication.v2]"
       targetAttributes:
@@ -218,7 +218,7 @@ mappings:
     with:
       fhir: "$resource.reasonCode"
       openehr: "$archetype/description[at0017]/items[at0156]"
-      type: "CODEABLECONCEPT"
+      
 
   #  - name: "partOf"
   #    with:
@@ -238,7 +238,7 @@ mappings:
     with:
       fhir: "$resource.request.as(Reference).identifier" # or should resolve reference and take the identifier from there.
       openehr: "$archetype/protocol[at0030]/items[at0103]"
-      type: "IDENTIFIER"
+      
     fhirCondition:
       targetRoot: "$resource.request.as(Reference)"
       targetAttribute: "identifier"
@@ -256,7 +256,7 @@ mappings:
           with:
             fhir: "$fhirRoot.as(Reference).identifier"
             openehr: "$openehrRoot"
-            type: "IDENTIFIER"
+            
           openehrCondition:
             targetRoot: "$openehrRoot"
             targetAttribute: "links"
@@ -277,7 +277,7 @@ mappings:
                 with:
                   fhir: "$fhirRoot.identifier"
                   openehr: "$openehrRoot"
-                  type: "IDENTIFIER"
+                  
 #              - name: "medicationRequestMapping"
 #                with:
 #                  fhir: "$fhirRoot"

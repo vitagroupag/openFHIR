@@ -48,7 +48,7 @@ public class ProcedureTest extends KdsBidirectionalTest {
         final Procedure theProcedure = (Procedure) allProcedures.get(0).getResource();
 
         // -performed
-        Assert.assertEquals("2022-02-03T04:05:06",
+        Assert.assertEquals("2022-02-03T04:05:06+01:00",
                             theProcedure.getPerformedDateTimeType().getValueAsString());
 
 //        - name: "ISM Transition"
@@ -93,7 +93,7 @@ public class ProcedureTest extends KdsBidirectionalTest {
 //                                    .getAsString());
         Assert.assertEquals("5-470", jsonObject.getAsJsonPrimitive("kds_prozedur/prozedur:0/name_der_prozedur|code")
                 .getAsString());
-        Assert.assertEquals("5-470", jsonObject.getAsJsonPrimitive("kds_prozedur/prozedur:0/name_der_prozedur|value")
+        Assert.assertEquals("Interventional neurovascular procedures,", jsonObject.getAsJsonPrimitive("kds_prozedur/prozedur:0/name_der_prozedur|value")
                 .getAsString());
         Assert.assertEquals("http://fhir.de/CodeSystem/bfarm/ops",
                             jsonObject.getAsJsonPrimitive("kds_prozedur/prozedur:0/name_der_prozedur|terminology")
@@ -113,7 +113,7 @@ public class ProcedureTest extends KdsBidirectionalTest {
         Assert.assertEquals("durchführungsabsicht",
                             jsonObject.getAsJsonPrimitive("kds_prozedur/prozedur:0/durchführungsabsicht|code")
                                     .getAsString());
-        Assert.assertEquals("durchführungsabsicht",
+        Assert.assertEquals("valuedurchführungsabsicht",
                             jsonObject.getAsJsonPrimitive("kds_prozedur/prozedur:0/durchführungsabsicht|value")
                                     .getAsString());
         Assert.assertEquals("Durchfuehrungsabsicht",
