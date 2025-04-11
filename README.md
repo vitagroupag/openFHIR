@@ -10,7 +10,7 @@ This project is currently in its alpha stage. It is actively being developed, an
 ![openFHIR logo](https://open-fhir.com/images/openFIHR-logo-color-dark-horizontal-1.svg)
 
 openFHIR is an engine that implements [FHIR Connect specification](https://sevkohler.github.io/FHIRconnect-spec/build/site/FHIRconnect/v1.0.0/index.html) and facilitates bidirectional mappings between openEHR and FHIR.
-It is an open source edition of the commercial offering available at https://www.open-fhir.com
+It is an open source edition of the commercial offering available at https://open-fhir.com
 
 ## [Documentation](https://open-fhir.com/documentation/index.html)
 ## [Sandbox](https://sandbox.open-fhir.com/)
