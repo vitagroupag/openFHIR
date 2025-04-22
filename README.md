@@ -44,3 +44,4 @@ Run using
 java -jar target/*.jar
 ```
 
+When it's running browse to Swagger UI --> http://localhost:8080/swagger-ui/index.html
