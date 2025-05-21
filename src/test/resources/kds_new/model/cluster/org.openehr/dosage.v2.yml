@@ -18,34 +18,44 @@ mappings:
       fhir: "$fhirRoot.text"
       openehr: "$archetype/items[at0178]"
       
-
-#  - name: "dosageTiming"
-#    with:
-#      fhir: "$fhirRoot.timing"
-#      openehr: "$archetype"
-#    mappingCode: "timingToDaily_NonDaily" #FHIR and openEHR are here very different, openEHR uses ISO, FHIR made up their own
-
-
   - name: "doseQuantityValue"
     with:
       fhir: "$fhirRoot.doseAndRate.dose.as(Quantity)"
       openehr: "$archetype/items[at0144]"
       
-
-#  - name: "rateRatio"
-#    with:
-#      fhir: "$fhirRoot.rate.as(Ratio)"
-#      openehr: "$archetype/items[at0144]"
-#    mappingCode: "ratio_to_dv_quantity" #rate is in two bits denominator and nominator (250ml, per hour), openEHR uses the unit for this in dv_quantity (l/h, ml/h). These have to be merged.
-
-#  - name: "duration"
-#    with:
-#      fhir: "$fhirRoot.timing.duration"
-#      openehr: "$archetype/items[at0134]"  #not sure if this mapping is correct
-#    mappingCode: "dosageDurationToAdministrationDuration" #FHIR and openEHR are here very different, openEHR uses ISO, FHIR made up their own
-
   - name: "sequence"
     with:
       fhir: "$fhirRoot.sequence"
       openehr: "$archetype/items[at0164]"
+
+
+  # - name: "dosageTiming"
+  #   with:
+  #     fhir: "$fhirRoot.timing"
+  #     openehr: "$archetype/items[openEHR-EHR-CLUSTER.timing_daily.v1]"
+  #   mappingCode: "timingToDaily_NonDaily"
+
+  # - name: "doseQuantityValue"
+  #   with:
+  #     fhir: "$fhirRoot.doseAndRate.dose.as(Quantity)"
+  #     openehr: "$archetype/items[at0144]"
+  #   mappingCode: "dosageQuantityToRange"
+
+  # - name: "doseQuantityValue"
+  #   with:
+  #     fhir: "$fhirRoot.doseAndRate.dose.as(Range)"
+  #     openehr: "$archetype/items[at0144]"
+  #   mappingCode: "dosageQuantityToRange"
+
+  # - name: "rateRatio"
+  #   with:
+  #     fhir: "$fhirRoot.doseAndRate.rate.as(Ratio)"
+  #     openehr: "$archetype/items[at0134]"
+  #   mappingCode: "ratio_to_dv_quantity"
+
+  # - name: "duration"
+  #   with:
+  #     fhir: "$fhirRoot.timing.repeat"
+  #     openehr: "$archetype/items[at0102]"
+  #   mappingCode: "dosageDurationToAdministrationDuration"
       
