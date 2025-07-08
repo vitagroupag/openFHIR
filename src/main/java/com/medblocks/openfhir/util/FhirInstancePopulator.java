@@ -146,6 +146,8 @@ public class FhirInstancePopulator {
     private void populateIdentifier(Object toPopulate, Identifier data) {
         if (toPopulate instanceof Identifier) {
             data.copyValues((Identifier) toPopulate);
+        } else if (toPopulate instanceof StringType stringType) {
+            stringType.setValue(data.getValue());
         }
     }
 
