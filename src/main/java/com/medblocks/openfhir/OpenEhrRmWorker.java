@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_EXEMPT_FROM_NONE;
 import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_TYPE_NONE;
 import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_UNDERSCORABLES;
 import static com.medblocks.openfhir.util.OpenFhirStringUtils.RECURRING_SYNTAX;
@@ -62,7 +63,8 @@ public class OpenEhrRmWorker {
             final int initialOpenEhrPathWithProperTreeLength = split.length + 1;
             if (fhirToOpenEhrHelper.getOpenEhrPath().replace("|", "/").split("/").length < initialOpenEhrPathWithProperTreeLength ) {
                 // means it didn't find it fully.. so it probably doesn't exist
-                if (!FhirConnectConst.DV_MULTIMEDIA.equals(fhirToOpenEhrHelper.getOpenEhrType())) { // multimedia and its 'content' is a tad bit special...
+                final String currentOpenEhrType = fhirToOpenEhrHelper.getOpenEhrType();
+                if (currentOpenEhrType == null || !OPENEHR_EXEMPT_FROM_NONE.contains(fhirToOpenEhrHelper.getOpenEhrType())) {
                     fhirToOpenEhrHelper.setOpenEhrType(OPENEHR_TYPE_NONE);
                 }
             }

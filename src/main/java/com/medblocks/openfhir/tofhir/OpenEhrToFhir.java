@@ -1,29 +1,5 @@
 package com.medblocks.openfhir.tofhir;
 
-import static com.medblocks.openfhir.fc.FhirConnectConst.CODE_PHRASE;
-import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_EMPTY;
-import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_NOT_EMPTY;
-import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_NOT_OF;
-import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_TYPE;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_BOOL;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_COUNT;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_DATE;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_DATE_TIME;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_MULTIMEDIA;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_PROPORTION;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_QUANTITY;
-import static com.medblocks.openfhir.fc.FhirConnectConst.DV_TIME;
-import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_ARCHETYPE_FC;
-import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_COMPOSITION_FC;
-import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_TYPE_MEDIA;
-import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_TYPE_NONE;
-import static com.medblocks.openfhir.fc.FhirConnectConst.THIS;
-import static com.medblocks.openfhir.fc.FhirConnectConst.UNIDIRECTIONAL_TOOPENEHR;
-import static com.medblocks.openfhir.util.OpenFhirStringUtils.RECURRING_SYNTAX;
-import static com.medblocks.openfhir.util.OpenFhirStringUtils.RECURRING_SYNTAX_ESCAPED;
-import static com.medblocks.openfhir.util.OpenFhirStringUtils.RESOLVE;
-import static com.medblocks.openfhir.util.OpenFhirStringUtils.WHERE;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -47,22 +23,11 @@ import com.medblocks.openfhir.util.OpenFhirMapperUtils;
 import com.medblocks.openfhir.util.OpenFhirStringUtils;
 import com.nedap.archie.rm.composition.Composition;
 import com.nedap.archie.rm.composition.ContentItem;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.nedap.archie.rm.support.identification.UIDBasedId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.ehrbase.openehr.sdk.serialisation.flatencoding.std.marshal.FlatJsonMarshaller;
 import org.ehrbase.openehr.sdk.webtemplate.model.WebTemplate;
@@ -87,6 +52,45 @@ import org.hl7.fhir.r4.utils.FHIRPathUtilityClasses.ClassTypeInfo;
 import org.openehr.schemas.v1.OPERATIONALTEMPLATE;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.medblocks.openfhir.fc.FhirConnectConst.CODE_PHRASE;
+import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_EMPTY;
+import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_NOT_EMPTY;
+import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_NOT_OF;
+import static com.medblocks.openfhir.fc.FhirConnectConst.CONDITION_OPERATOR_TYPE;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_BOOL;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_COUNT;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_DATE;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_DATE_TIME;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_MULTIMEDIA;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_PROPORTION;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_QUANTITY;
+import static com.medblocks.openfhir.fc.FhirConnectConst.DV_TIME;
+import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_ARCHETYPE_FC;
+import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_COMPOSITION_FC;
+import static com.medblocks.openfhir.fc.FhirConnectConst.OPENEHR_TYPE_NONE;
+import static com.medblocks.openfhir.fc.FhirConnectConst.THIS;
+import static com.medblocks.openfhir.fc.FhirConnectConst.UNIDIRECTIONAL_TOOPENEHR;
+import static com.medblocks.openfhir.util.OpenFhirStringUtils.RECURRING_SYNTAX;
+import static com.medblocks.openfhir.util.OpenFhirStringUtils.RECURRING_SYNTAX_ESCAPED;
+import static com.medblocks.openfhir.util.OpenFhirStringUtils.RESOLVE;
+import static com.medblocks.openfhir.util.OpenFhirStringUtils.WHERE;
 
 /**
  * Engine doing translation from openEHR to FHIR according to the openFHIR state configuration
@@ -193,7 +197,7 @@ public class OpenEhrToFhir {
                            instantiatedIntermediateElements,
                            creatingBundle,
                            archetypesAlreadyProcessed,
-                           archetypesWithinContent,
+                           composition,
                            archetypeNodeId);
         }
 
@@ -215,7 +219,7 @@ public class OpenEhrToFhir {
      *         key'd by created object + fhir path + openehr path)
      * @param creatingBundle Bundle that is being created as part of the mappings
      * @param archetypesAlreadyProcessed set of archetypes already processed
-     * @param archetypesWithinContent archetype within a Composition that is currently being mapped
+     * @param composition composition that is currently being mapped
      * @param archetypeNodeId archetype id within a Composition that is currently being mapped
      */
     private void handleMappings(final List<OpenFhirFhirConnectModelMapper> theMappers,
@@ -227,7 +231,7 @@ public class OpenEhrToFhir {
                                 final Map<String, Object> instantiatedIntermediateElements,
                                 final Bundle creatingBundle,
                                 final Set<String> archetypesAlreadyProcessed,
-                                final ContentItem archetypesWithinContent,
+                                final Composition composition,
                                 final String archetypeNodeId) {
         for (final OpenFhirFhirConnectModelMapper theMapper : theMappers) {
             if (theMapper.getFhirConfig() == null) {
@@ -268,7 +272,8 @@ public class OpenEhrToFhir {
                                         null,
                                         null,
                                         firstFlatPath,
-                                        false);
+                                        false,
+                                        composition.getUid());
 
             // within helpers, you should have everything you need to create a FHIR Resource now
             final List<Resource> created = createResourceFromOpenEhrToFhirHelper(helpers,
@@ -291,7 +296,7 @@ public class OpenEhrToFhir {
                                                                                          : instantiatedIntermediateElements);
 
             log.info("Constructed {} resources for archetype {}.", created.size(),
-                     archetypesWithinContent.getArchetypeNodeId());
+                     theMapper.getOpenEhrConfig().getArchetype());
 
             addEntriesToBundle(creatingBundle, created, createdAndAdded);
             archetypesAlreadyProcessed.add(archetypeNodeId);
@@ -923,7 +928,8 @@ public class OpenEhrToFhir {
                                      final String parentFollowedByFhir,
                                      final String parentFollowedByOpenEhr,
                                      final String slotContext,
-                                     final boolean possibleRecursion) {
+                                     final boolean possibleRecursion,
+                                     final UIDBasedId compositionUid) {
         if (mappings == null) {
             return;
         }
@@ -997,7 +1003,8 @@ public class OpenEhrToFhir {
                 handleReferenceMapping(mapping, resourceType, parentFollowedByFhir, parentFollowedByOpenEhr, theMapper,
                                        firstFlatPath, definedMappingWithOpenEhr, fhirPath, isFollowedBy, helpers,
                                        webTemplate,
-                                       flatJsonObject, slotContext, openEhrForReferenceMappings, possibleRecursion);
+                                       flatJsonObject, slotContext, openEhrForReferenceMappings, possibleRecursion,
+                                       compositionUid);
             } else {
                 boolean manuallyAddingOccurrence = openehr.contains(RECURRING_SYNTAX);
                 if (manuallyAddingOccurrence) {
@@ -1015,22 +1022,34 @@ public class OpenEhrToFhir {
                                                                                     mapping.getFhirCondition(),
                                                                                     resourceType, parentFollowedByFhir),
                                       helpers, webTemplate, flatJsonObject, slotContext, openEhrForReferenceMappings,
-                                      possibleRecursion);
+                                      possibleRecursion, compositionUid);
                 } else {
-                    // adds regex pattern to simplified path in a way that we can extract data from a given flat path
-                    final String withRegex = openFhirStringUtils.addRegexPatternToSimplifiedFlatFormat(openehr);
+                    final List<String> matchingEntries;
+                    if (openehr.endsWith("/_uid")) {
+                        final String regex = openFhirStringUtils.addRegexPatternToSimplifiedFlatFormat(openehr.replace("/_uid", ""));
 
-                    // get all entries from the flat path that match the simplified flat path with regex pattern
-                    final List<String> matchingEntries = openFhirStringUtils.getAllEntriesThatMatch(withRegex,
-                                                                                                    flatJsonObject);
+                        matchingEntries = openFhirStringUtils.getAllEntriesThatMatch(regex, flatJsonObject).stream()
+                                .distinct()
+                                .map(entry -> entry.concat("/_uid"))
+                                .toList();
+
+                    } else {
+                        // adds regex pattern to simplified path in a way that we can extract data from a given flat path
+                        final String withRegex = openFhirStringUtils.addRegexPatternToSimplifiedFlatFormat(openehr);
+
+                        // get all entries from the flat path that match the simplified flat path with regex pattern
+                        matchingEntries = openFhirStringUtils.getAllEntriesThatMatch(withRegex, flatJsonObject);
+                    }
+
                     final Map<String, List<String>> joinedEntries = openFhirStringUtils.joinValuesThatAreOne(matchingEntries);
+
                     handleRegularMapping(mapping, resourceType, parentFollowedByFhir,
                                          parentFollowedByOpenEhrWithOutAqlPath,
                                          theMapper,
                                          firstFlatPath, definedMappingWithOpenEhr, fhirPath, isFollowedBy, helpers,
                                          webTemplate,
                                          flatJsonObject, slotContext, openehr, joinedEntries, rmType, hardcodedValue,
-                                         possibleRecursion);
+                                         possibleRecursion, compositionUid);
                 }
             }
 
@@ -1109,13 +1128,29 @@ public class OpenEhrToFhir {
                                       final String slotContext, final String openehr,
                                       final Map<String, List<String>> joinedEntries,
                                       final String rmType, final String hardcodedValue,
-                                      final boolean possibleRecursion) {
+                                      final boolean possibleRecursion,
+                                      final UIDBasedId compositionId) {
         String openEhrPath = null;
         List<OpenEhrToFhirHelper.DataWithIndex> values = extractValues(mapping, joinedEntries, rmType, flatJsonObject,
                                                                        hardcodedValue);
-//        if(values != null && openehr.equals(parentFollowedByOpenEhr) && rmType!=null  ){
-//           values.clear();
-//        }
+        if (openehr.endsWith("/_uid")) {
+            log.trace("Process _uid mapping for path {}", openehr);
+
+            String path = StringUtils.removeStart(firstFlatPath, webTemplate.getTree().getId());
+
+            if (joinedEntries.size() == 1 && values.isEmpty()) {
+                StringType value = buildCompositionUri(compositionId, path, null);
+                values.add(new OpenEhrToFhirHelper.DataWithIndex(value, 0, joinedEntries.keySet().iterator().next()));
+            } else if (joinedEntries.size() > 1 && joinedEntries.size() != values.size()) {
+                log.warn("Found {} joined entries for _uid mapping, but found {} values",
+                        joinedEntries.size(), values.size());
+            } else {
+                values.forEach(value ->
+                    value.setData(buildCompositionUri(compositionId, path, value.getData()))
+                );
+            }
+        }
+
         if (!OPENEHR_TYPE_NONE.equals(mapping.getWith().getType())) {
             openEhrPath = openehr;
         } else if (mapping.getFhirCondition() != null) {
@@ -1171,7 +1206,8 @@ public class OpenEhrToFhir {
                                                                                       parentFollowedByFhir),
                                         definedMappingWithOpenEhr == null ? firstFlatPath : definedMappingWithOpenEhr,
                                         slotContext,
-                                        possibleRecursion);
+                                        possibleRecursion,
+                                        compositionId);
         }
     }
 
@@ -1183,7 +1219,8 @@ public class OpenEhrToFhir {
                                    final String definedMappingWithOpenEhr, final String fhirPath,
                                    final List<OpenEhrToFhirHelper> helpers, final WebTemplate webTemplate,
                                    final JsonObject flatJsonObject,
-                                   final String slotContext, final String openehr, final boolean breakRecursion) {
+                                   final String slotContext, final String openehr, final boolean breakRecursion,
+                                   final UIDBasedId compositionId) {
         final String templateId = webTemplate.getTemplateId();
 
         final List<OpenFhirFhirConnectModelMapper> slotArchetypeMapperss = openFhirTemplateRepo.getMapperForArchetype(
@@ -1217,7 +1254,8 @@ public class OpenEhrToFhir {
                                         helpers, webTemplate, flatJsonObject, true, childWithParentFhirPath,
                                         definedMappingWithOpenEhr,
                                         definedMappingWithOpenEhr,
-                                        possibleRecursion);
+                                        possibleRecursion,
+                                        compositionId);
 
             // slot archetype can be followed by other mappers as well
             if (mapping.getFollowedBy() != null) {
@@ -1236,7 +1274,7 @@ public class OpenEhrToFhir {
                                                                                           mapping.getFhirCondition(),
                                                                                           resourceType,
                                                                                           parentFollowedByFhir),
-                                            definedMappingWithOpenEhr, slotContext, possibleRecursion);
+                                            definedMappingWithOpenEhr, slotContext, possibleRecursion, compositionId);
             }
         }
     }
@@ -1253,7 +1291,8 @@ public class OpenEhrToFhir {
                                         final List<OpenEhrToFhirHelper> helpers, final WebTemplate webTemplate,
                                         final JsonObject flatJsonObject,
                                         final String slotContext, final String openehr,
-                                        final boolean possibleRecursion) {
+                                        final boolean possibleRecursion,
+                                        final UIDBasedId compositionId) {
         final List<Mapping> referencedMapping = mapping.getReference().getMappings();
         final String wConditions = openFhirStringUtils.getFhirPathWithConditions(mapping.getWith().getFhir(),
                                                                                  mapping.getFhirCondition(),
@@ -1311,7 +1350,8 @@ public class OpenEhrToFhir {
                                         parentFollowedByFhir,
                                         parentFollowedByOpenEhr,
                                         slotContext,
-                                        possibleRecursion);
+                                        possibleRecursion,
+                                        compositionId);
         } else {
             // recursive call so all $reference.mappings are handled
             prepareOpenEhrToFhirHelpers(theMapper,
@@ -1325,7 +1365,8 @@ public class OpenEhrToFhir {
                                         parentFollowedByFhir,
                                         parentFollowedByOpenEhr,
                                         slotContext,
-                                        possibleRecursion);
+                                        possibleRecursion,
+                                        compositionId);
         }
 
     }
@@ -2091,6 +2132,20 @@ public class OpenEhrToFhir {
             return valueHolder.get(path).getAsString();
         }
         return null;
+    }
+
+    private StringType buildCompositionUri(UIDBasedId compositionId, String path, Base uid) {
+        Assert.notNull(compositionId, "Composition ID cannot be null");
+        Assert.notNull(path, "Path cannot be null");
+
+        String pathToUse = uid == null ? path : path.substring(0, path.length() - 1) + " and uid/value = '" + uid + "']";
+        String value = String.format("ehr:composition/%s%s", compositionId.getRoot().getValue(), pathToUse);
+        return new StringType(hashValue(value));
+    }
+
+    private String hashValue(String value) {
+        byte[] digest = DigestUtils.sha256(value);
+        return HexFormat.of().formatHex(digest);
     }
 
     @AllArgsConstructor
